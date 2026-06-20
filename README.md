@@ -16,8 +16,8 @@ Stack: **Vite + React + TypeScript + Tailwind CSS**, Backend ausschließlich
 | Stelle | Datei | Was |
 | --- | --- | --- |
 | Supabase URL + anon-Key | `.env` (lokal) / GitHub-Secrets (Build) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
-| Filius-Basis-URL + Szenario-Schema | `supabase/seed.sql` | `https://<filius-clone>/?scenario=<id>` ersetzen |
-| Team-Passwörter | `src/lib/auth.ts` (Konstante `USERS`) | ersetzen und auf Papier drucken |
+| Filius-Deeplink-Schema | `supabase/seed.sql` | `https://mamrehn.github.io/netlab3-web/?b3_support_ticket=<id>` (`<id>` = Ticket-ID) |
+| Passwörter (Teams + Lehrkraft) | DB-Tabelle `teams` (siehe `supabase/rpc-auth.sql`) | echte Passwörter eintragen und auf Papier drucken |
 | Repo-Name (Pages-Basispfad) | `vite.config.ts` (`base`) | aktuell `/b3_support_ticket_system/` |
 | Ticket-Texte 2/3/5/6 | `supabase/seed.sql` | bei Bedarf durch echte Paket-Texte ersetzen |
 
@@ -44,28 +44,33 @@ Weitere Skripte: `npm run build` (Typecheck + Produktivbuild), `npm run preview`
 2. Im **SQL Editor** nacheinander ausführen:
    - `supabase/schema.sql` – Tabelle, RLS-Policies, Realtime.
    - `supabase/seed.sql` – die sechs Ticket-Vorlagen (re-runnable).
-3. **Database → Replication / Realtime**: prüfen, dass `tickets` aktiv ist
+   - `supabase/rpc-auth.sql` – serverseitige Auth + Schreibschutz (siehe §2).
+3. In `rpc-auth.sql` den auskommentierten `insert into teams …` mit den echten
+   Passwörtern befüllen – **inkl. der `teacher`-Zeile** – und ausführen.
+4. **Database → Replication / Realtime**: prüfen, dass `tickets` aktiv ist
    (durch `schema.sql` bereits gesetzt).
-4. URL und **anon**-Key aus **Project Settings → API** übernehmen.
-
-Optional (mehr Schreibschutz, README §10): `supabase/optional-hardening.sql`.
+5. URL und **anon**-Key aus **Project Settings → API** übernehmen.
 
 ---
 
-## Rollen & Schreibschutz (§2)
+## Rollen & Schreibschutz (§2 + §10 – serverseitig)
 
-**Bewusste Entscheidung: keine serverseitige Auth.** Die Anmeldung ist eine
-clientseitige Prüfung gegen `USERS` in `src/lib/auth.ts`; die Session liegt im
-`sessionStorage` (refresh-fest). Der anon-Key und diese Zuordnung sind im
-öffentlichen Bundle sichtbar – das ist akzeptiert. Ziel ist nur, das Schreiben
-in ein *fremdes* Ticket etwas zu erschweren.
+Die Anmeldung wird **serverseitig** geprüft: die RPC `app_login` vergleicht
+Benutzername+Passwort gegen die DB-Tabelle `teams` (RLS gesperrt, niemand liest
+die Passwörter). **Passwörter liegen NICHT im Bundle.** Die Session liegt im
+`sessionStorage` (refresh-fest) und hält das eigene Passwort nur clientseitig,
+damit es den Schreib-RPCs mitgegeben werden kann.
 
-- Jeder angemeldete Nutzer **liest alle** Tickets.
-- Ein **Team** bearbeitet **nur sein eigenes** Ticket (`team1`→#1 … `team6`→#6).
-- **teacher** bearbeitet **jedes** Ticket und sieht die Admin-Aktionen.
+- Jeder angemeldete Nutzer **liest alle** Tickets (offene SELECT-Policy → auch Realtime).
+- Schreiben läuft ausschließlich über `submit_ticket` / `reset_tickets`
+  (SECURITY DEFINER). Direktes anon-`UPDATE` ist per RLS unterbunden.
+- Ein **Team** schreibt **nur sein eigenes** Ticket (`team1`→#1 … `team6`→#6) –
+  serverseitig erzwungen. Die **Lehrkraft** (`teacher`) schreibt jedes Ticket,
+  darf zurücksetzen und sieht die Admin-Aktionen.
 
-Standard-Zugangsdaten (in `src/lib/auth.ts` ersetzen!): `team1 … team6` mit den
-dort hinterlegten Passwörtern, `teacher` / `datasol-lehrer-2026`.
+Zugangsdaten werden in der Tabelle `teams` gepflegt (siehe `supabase/rpc-auth.sql`)
+und auf Papier verteilt. Determinierte Schüler:innen müssten für ein fremdes
+Ticket dessen Papier-Passwort kennen – ohne echte per-Nutzer-Accounts.
 
 ---
 

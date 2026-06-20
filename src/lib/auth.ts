@@ -1,42 +1,59 @@
-// Clientseitige Anmeldung (README §2). BEWUSSTE ENTSCHEIDUNG: keine
-// serverseitige Auth. Der anon-Key und diese Zuordnung sind im öffentlichen
-// Bundle sichtbar – das ist akzeptiert. Ziel ist nur, das Schreiben in ein
-// FREMDES Ticket etwas zu erschweren und jedem Team sein Ticket zu zeigen.
+// Anmeldung & Schreibschutz (README §2 + §10).
 //
-// >>> Vor dem Unterricht anpassen und auf Papier ausdrucken: <<<
-// Passwörter ersetzen. Stärkere Variante: README §10 (Passwörter in der DB).
+// Die Anmeldung wird SERVERSEITIG geprüft: app_login() vergleicht
+// Benutzername+Passwort gegen die teams-Tabelle. Passwörter liegen in der DB,
+// NICHT im öffentlichen Bundle. Schreibzugriffe laufen über die RPCs
+// submit_ticket()/reset_tickets() (siehe src/lib/api.ts), die das Passwort
+// erneut serverseitig prüfen – daher wird das eigene Passwort in der Session
+// gehalten (nur clientseitig, im sessionStorage dieses Geräts).
+
+import { supabase } from './supabase';
 
 export type Role = 'team' | 'teacher';
-
-export interface UserConfig {
-  password: string;
-  role: Role;
-  ticketId?: number; // nur für Teams: das eigene Ticket
-}
-
-export const USERS: Record<string, UserConfig> = {
-  team1: { password: 'rot-3148', role: 'team', ticketId: 1 },
-  team2: { password: 'blau-7290', role: 'team', ticketId: 2 },
-  team3: { password: 'gruen-5063', role: 'team', ticketId: 3 },
-  team4: { password: 'gelb-8217', role: 'team', ticketId: 4 },
-  team5: { password: 'lila-4905', role: 'team', ticketId: 5 },
-  team6: { password: 'grau-6734', role: 'team', ticketId: 6 },
-  teacher: { password: 'datasol-lehrer-2026', role: 'teacher' },
-};
 
 export interface Session {
   username: string;
   role: Role;
-  ticketId?: number;
+  ticketId?: number; // nur für Teams: das eigene Ticket
+  password: string; // wird für die Schreib-RPCs benötigt (nur clientseitig)
+}
+
+interface LoginRow {
+  username: string;
+  role: Role;
+  ticket_id: number | null;
 }
 
 const STORAGE_KEY = 'datasol-session';
 
-// Prüft Anmeldedaten gegen USERS. Gibt die Session zurück oder null.
-export function authenticate(username: string, password: string): Session | null {
-  const user = USERS[username.trim()];
-  if (!user || user.password !== password) return null;
-  return { username: username.trim(), role: user.role, ticketId: user.ticketId };
+// Serverseitige Prüfung der Anmeldedaten. Gibt die Session zurück oder null.
+export async function authenticate(
+  username: string,
+  password: string,
+): Promise<Session | null> {
+  const u = username.trim();
+  if (!u || !password) return null;
+
+  const { data, error } = await supabase.rpc('app_login', {
+    p_username: u,
+    p_password: password,
+  });
+
+  if (error) {
+    // Echte Fehler (Netz/RPC fehlt) protokollieren; nach außen "ungültig".
+    console.error('app_login fehlgeschlagen:', error.message);
+    return null;
+  }
+
+  const row = (Array.isArray(data) ? data[0] : null) as LoginRow | null;
+  if (!row) return null;
+
+  return {
+    username: row.username ?? u,
+    role: row.role ?? 'team',
+    ticketId: row.ticket_id ?? undefined,
+    password,
+  };
 }
 
 export function loadSession(): Session | null {
@@ -57,7 +74,7 @@ export function clearSession(): void {
 }
 
 // Darf diese Session das gegebene Ticket bearbeiten?
-// Lehrer: jedes Ticket. Team: nur das eigene.
+// Lehrer: jedes Ticket. Team: nur das eigene. (Serverseitig zusätzlich erzwungen.)
 export function canEditTicket(session: Session | null, ticketId: number): boolean {
   if (!session) return false;
   if (session.role === 'teacher') return true;

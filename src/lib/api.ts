@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { Session } from './auth';
 
 export interface SubmissionInput {
   submitted_layer: string | null;
@@ -8,40 +9,35 @@ export interface SubmissionInput {
   trace_note: string | null;
 }
 
-// Speichert die Schülereingabe eines Tickets und vermerkt Bearbeiter/Zeit.
-// `reveal=true` schaltet zusätzlich die Musterlösung frei ("weiterleiten").
+// Speichert die Einreichung über die serverseitig geprüfte RPC submit_ticket
+// (Passwort aus der Session). `reveal=true` schaltet die Musterlösung frei.
+// Der Server setzt submitted_by/submitted_at und erzwingt die Schreibrechte.
 export async function saveSubmission(
   ticketId: number,
   input: SubmissionInput,
-  submittedBy: string,
+  session: Session,
   reveal: boolean,
 ): Promise<void> {
-  const patch: Record<string, unknown> = {
-    ...input,
-    submitted_tools: input.submitted_tools ?? [],
-    submitted_by: submittedBy,
-    submitted_at: new Date().toISOString(),
-  };
-  if (reveal) patch.revealed = true;
-
-  const { error } = await supabase.from('tickets').update(patch).eq('id', ticketId);
+  const { error } = await supabase.rpc('submit_ticket', {
+    p_username: session.username,
+    p_password: session.password,
+    p_ticket_id: ticketId,
+    p_layer: input.submitted_layer,
+    p_tools: input.submitted_tools ?? [],
+    p_problem: input.submitted_problem,
+    p_solution: input.submitted_solution,
+    p_trace: input.trace_note,
+    p_reveal: reveal,
+  });
   if (error) throw new Error(error.message);
 }
 
-// Lehrer-Reset: leert NUR die Schülereingaben aller Tickets, Vorlagen bleiben.
-export async function resetAllSubmissions(): Promise<void> {
-  const { error } = await supabase
-    .from('tickets')
-    .update({
-      submitted_layer: null,
-      submitted_tools: [],
-      submitted_problem: null,
-      submitted_solution: null,
-      trace_note: null,
-      revealed: false,
-      submitted_by: null,
-      submitted_at: null,
-    })
-    .gte('id', 1); // Filter ist bei UPDATE erforderlich; trifft alle Tickets.
+// Lehrer-Reset über die RPC reset_tickets (serverseitig auf role='teacher' geprüft).
+// Leert NUR die Schülereingaben aller Tickets, die Vorlagen bleiben erhalten.
+export async function resetAllSubmissions(session: Session): Promise<void> {
+  const { error } = await supabase.rpc('reset_tickets', {
+    p_username: session.username,
+    p_password: session.password,
+  });
   if (error) throw new Error(error.message);
 }

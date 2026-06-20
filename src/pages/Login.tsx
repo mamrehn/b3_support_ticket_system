@@ -8,12 +8,17 @@ export function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   if (session) return <Navigate to="/" replace />;
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const ok = login(username, password);
+    if (submitting) return;
+    setSubmitting(true);
+    setError(false);
+    const ok = await login(username, password);
+    setSubmitting(false);
     if (ok) {
       navigate('/', { replace: true });
     } else {
@@ -82,9 +87,10 @@ export function Login() {
 
           <button
             type="submit"
-            className="w-full rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-700"
+            disabled={submitting}
+            className="w-full rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Anmelden
+            {submitting ? 'Anmelden …' : 'Anmelden'}
           </button>
         </form>
 

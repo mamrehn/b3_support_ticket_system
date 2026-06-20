@@ -20,10 +20,11 @@ export function Board() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const handleReset = async () => {
+    if (!session) return;
     setResetting(true);
     setActionError(null);
     try {
-      await resetAllSubmissions();
+      await resetAllSubmissions(session);
       await refetch();
       setResetOpen(false);
     } catch (e) {

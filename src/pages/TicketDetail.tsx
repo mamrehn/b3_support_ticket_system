@@ -5,7 +5,7 @@ import { StatusChip } from '../components/StatusChip';
 import { Banner } from '../components/Banner';
 import { useAuth } from '../context/AuthContext';
 import { useTickets } from '../context/TicketsContext';
-import { canEditTicket } from '../lib/auth';
+import { canEditTicket, type Session } from '../lib/auth';
 import { LAYERS, TOOLS, toolLabel } from '../lib/constants';
 import { saveSubmission } from '../lib/api';
 import { formatDateTime } from '../lib/format';
@@ -44,7 +44,7 @@ export function TicketDetail() {
     );
   }
 
-  if (!ticket) {
+  if (!ticket || !session) {
     return (
       <Layout>
         <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
@@ -57,17 +57,24 @@ export function TicketDetail() {
     );
   }
 
-  return <TicketDetailView key={ticket.id} ticket={ticket} editable={canEditTicket(session, ticket.id)} username={session?.username ?? '?'} />;
+  return (
+    <TicketDetailView
+      key={ticket.id}
+      ticket={ticket}
+      editable={canEditTicket(session, ticket.id)}
+      session={session}
+    />
+  );
 }
 
 function TicketDetailView({
   ticket,
   editable,
-  username,
+  session,
 }: {
   ticket: Ticket;
   editable: boolean;
-  username: string;
+  session: Session;
 }) {
   const { refetch } = useTickets();
   const [form, setForm] = useState<FormState>(() => fromTicket(ticket));
@@ -120,7 +127,7 @@ function TicketDetailView({
           submitted_solution: form.solution.trim() || null,
           trace_note: form.trace.trim() || null,
         },
-        username,
+        session,
         reveal,
       );
       await refetch();

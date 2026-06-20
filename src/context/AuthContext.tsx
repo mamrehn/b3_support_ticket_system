@@ -16,7 +16,7 @@ import {
 
 interface AuthContextValue {
   session: Session | null;
-  login: (username: string, password: string) => boolean;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -25,13 +25,16 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(() => loadSession());
 
-  const login = useCallback((username: string, password: string): boolean => {
-    const next = authenticate(username, password);
-    if (!next) return false;
-    saveSession(next);
-    setSession(next);
-    return true;
-  }, []);
+  const login = useCallback(
+    async (username: string, password: string): Promise<boolean> => {
+      const next = await authenticate(username, password);
+      if (!next) return false;
+      saveSession(next);
+      setSession(next);
+      return true;
+    },
+    [],
+  );
 
   const logout = useCallback(() => {
     clearSession();
