@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+/* Druck: weiße Seite, keine Hintergrundfarben außer den explizit gesetzten. */
+@media print {
+  body {
+    background: #fff;
+  }
+  @page {
+    margin: 1.5cm;
+  }
+}
