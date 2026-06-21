@@ -58,7 +58,7 @@ export function Login() {
                 setError(false);
               }}
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-accent-600 focus:ring-1 focus:ring-accent-600"
-              placeholder="z. B. team1 oder teacher"
+              placeholder="z. B. user1"
             />
           </div>
 

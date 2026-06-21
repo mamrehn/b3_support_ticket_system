@@ -64,7 +64,7 @@ damit es den Schreib-RPCs mitgegeben werden kann.
 - Jeder angemeldete Nutzer **liest alle** Tickets (offene SELECT-Policy → auch Realtime).
 - Schreiben läuft ausschließlich über `submit_ticket` / `reset_tickets`
   (SECURITY DEFINER). Direktes anon-`UPDATE` ist per RLS unterbunden.
-- Ein **Team** schreibt **nur sein eigenes** Ticket (`team1`→#1 … `team6`→#6) –
+- Ein **Team** schreibt **nur sein eigenes** Ticket (`user1`→#1 … `user6`→#6) –
   serverseitig erzwungen. Die **Lehrkraft** (`teacher`) schreibt jedes Ticket,
   darf zurücksetzen und sieht die Admin-Aktionen.
 
