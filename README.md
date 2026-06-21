@@ -16,7 +16,7 @@ Stack: **Vite + React + TypeScript + Tailwind CSS**, Backend ausschließlich
 | Stelle | Datei | Was |
 | --- | --- | --- |
 | Supabase URL + anon-Key | `.env` (lokal) / GitHub-Secrets (Build) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
-| Filius-Deeplink-Schema | `supabase/seed.sql` | `https://mamrehn.github.io/netlab3-web/?b3_support_ticket=<id>` (`<id>` = Ticket-ID) |
+| Filius-Deeplink-Schema | `supabase/seed.sql` | `https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_<id>` (`<id>` = Ticket-ID) |
 | Passwörter (Teams + Lehrkraft) | DB-Tabelle `teams` (siehe `supabase/rpc-auth.sql`) | echte Passwörter eintragen und auf Papier drucken |
 | Repo-Name (Pages-Basispfad) | `vite.config.ts` (`base`) | aktuell `/b3_support_ticket_system/` |
 | Ticket-Texte 2/3/5/6 | `supabase/seed.sql` | bei Bedarf durch echte Paket-Texte ersetzen |
