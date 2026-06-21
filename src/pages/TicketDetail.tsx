@@ -13,6 +13,7 @@ import { isSubmissionComplete, type Ticket } from '../lib/types';
 import { reporterFor } from '../lib/personas';
 import { Avatar } from '../components/Avatar';
 import { ColleagueFeedback } from '../components/ColleagueFeedback';
+import { TraceField } from '../components/TraceField';
 
 interface FormState {
   layer: string;
@@ -199,7 +200,7 @@ function TicketDetailView({
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-gray-700">
               Die Ursache dieser Störung erkennst du <strong>nur im laufenden Netz</strong>. Öffne
-              die Simulation, beobachte den Datenverkehr und prüfe mit deinen Werkzeugen, wo es
+              den Link, beobachte den Datenverkehr und prüfe mit deinen Werkzeugen, wo es
               hakt – erst dann kannst du die Diagnose unten zuverlässig stellen.
             </p>
             {hasFilius ? (
@@ -343,21 +344,12 @@ function TicketDetailView({
                 />
               </div>
 
-              {/* Wireshark-Trace */}
-              <div>
-                <label htmlFor="trace" className="block text-sm font-medium text-gray-700">
-                  Wireshark-Trace <span className="font-normal text-gray-400">(optional)</span>
-                </label>
-                <input
-                  id="trace"
-                  type="text"
-                  value={form.trace}
-                  disabled={!editable}
-                  onChange={(e) => update('trace', e.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-accent-600 focus:ring-1 focus:ring-accent-600 disabled:bg-gray-50 disabled:text-gray-500"
-                  placeholder="Link oder Notiz zum Trace"
-                />
-              </div>
+              {/* Wireshark-Trace als Screenshot */}
+              <TraceField
+                value={form.trace}
+                editable={editable}
+                onChange={(v) => update('trace', v)}
+              />
             </div>
 
             {error && (

@@ -1,12 +1,14 @@
 import { Avatar } from './Avatar';
 import { buildFeedback, joinDe } from '../lib/feedback';
 import { MENTOR } from '../lib/personas';
+import { solutionTraceFor } from '../lib/solutionTraces';
 import type { Ticket } from '../lib/types';
 
 // Statt einer trockenen "Musterlösung" kommentiert die erfahrene Kollegin im
 // Ticket: freundlich, betont was zu überdenken ist, bestätigt Richtiges kurz.
 export function ColleagueFeedback({ ticket }: { ticket: Ticket }) {
   const fb = buildFeedback(ticket);
+  const solutionTrace = solutionTraceFor(ticket.id);
 
   return (
     <section className="rounded-xl border border-accent-200 bg-accent-50/50 p-5 shadow-sm">
@@ -67,6 +69,20 @@ export function ColleagueFeedback({ ticket }: { ticket: Ticket }) {
               <span className="font-medium text-gray-900">So bekommt ihr es sauber weg:</span>{' '}
               {fb.modelSolution}
             </p>
+
+            {/* Optionaler Referenz-Screenshot der Kollegin (nur falls hinterlegt) */}
+            {solutionTrace && (
+              <figure className="mt-1">
+                <img
+                  src={solutionTrace}
+                  alt="Referenz-Trace der Kollegin"
+                  className="max-h-[40rem] w-full rounded-md border border-accent-200 object-contain bg-white shadow-sm"
+                />
+                <figcaption className="mt-1 text-xs text-gray-500">
+                  Zum Vergleich – so sieht der Trace zur Lösung aus.
+                </figcaption>
+              </figure>
+            )}
 
             <p>
               Schaut es euch ruhig nochmal im Netz an, dann fällt der Groschen sofort. Meldet euch,

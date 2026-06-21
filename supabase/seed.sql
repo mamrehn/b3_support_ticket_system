@@ -12,7 +12,7 @@
 
 insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, correct_layer, correct_tools, model_problem, model_solution) values
 (1, 'Ticket #1 – Keine Netzwerkverbindung',
- 'Mein Rechner hat überhaupt keine Netzwerkverbindung mehr – kein Intranet, gar nichts. Gestern lief noch alles.',
+ 'Mein Rechner hat überhaupt keine Netzwerkverbindung mehr – kein Intranet, gar nichts. Gestern lief noch alles. Bitte reparieren. Danke!',
  null,
  'https://mamrehn.github.io/netlab3-web/?b3_support_ticket=1',
  'Schicht 1 – Bitübertragung',
@@ -22,7 +22,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
 
 (2, 'Ticket #2 – Anderes Netz nicht erreichbar',
  'Die Kollegen direkt neben mir kann ich anpingen, aber an die Server in der anderen Abteilung komme ich nicht heran. Das Internet geht auch nicht.',
- 'Pakete in fremde Netze schickt ein PC an sein Standardgateway (den Router). Fehlt diese Adresse, bleibt nur das eigene Teilnetz erreichbar.',
+ 'Pakete in fremde Netze schickt ein PC an sein Standardgateway (den Router). Fehlt diese Adresse, bleibt nur das eigene Teilnetz erreichbar. Bitte reparieren. Danke!',
  'https://mamrehn.github.io/netlab3-web/?b3_support_ticket=2',
  'Schicht 3 – Vermittlung',
  array['ipconfig','ping','tracert'],
@@ -30,7 +30,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  'Korrektes Standardgateway (Router-IP) laut Netzplan im Client eingetragen.'),
 
 (3, 'Ticket #3 – Manche Rechner erreichbar, andere nicht',
- 'Ein paar Rechner im Haus erreiche ich problemlos, andere im gleichen Büro überhaupt nicht. Das ergibt für mich keinen Sinn.',
+ 'Ein paar Rechner im Haus erreiche ich problemlos, andere im gleichen Büro überhaupt nicht. Das ergibt für mich keinen Sinn. Bitte reparieren. Danke!',
  null,
  'https://mamrehn.github.io/netlab3-web/?b3_support_ticket=3',
  'Schicht 3 – Vermittlung',
@@ -39,7 +39,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  'Korrekte Subnetzmaske laut Netzplan gesetzt, danach sind alle Rechner im Subnetz erreichbar.'),
 
 (4, 'Ticket #4 – Intranet per Name nicht erreichbar',
- 'Ich will unser Intranet unter intranet.datasol.local öffnen – es kommt aber nur eine Fehlermeldung. Eine Kollegin gab mir eine Zahlenadresse, damit geht es plötzlich.',
+ 'Ich will unser Intranet unter intranet.datasol.local öffnen – es kommt aber nur eine Fehlermeldung. Eine Kollegin gab mir eine Zahlenadresse, damit geht es plötzlich. Bitte reparieren. Danke!',
  'Namen wie intranet.datasol.local übersetzt ein DNS-Server in IP-Adressen. Jeder PC muss die Adresse seines DNS-Servers kennen.',
  'https://mamrehn.github.io/netlab3-web/?b3_support_ticket=4',
  'Schicht 7 – Anwendung',
@@ -48,7 +48,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  'Adresse des DNS-Servers im Client ergänzt (vom Nachbar-PC/Netzplan).'),
 
 (5, 'Ticket #5 – Webseite lädt nicht, Server antwortet aber',
- 'Den Server kann ich anpingen, aber unsere interne Webseite lädt einfach nicht – im Browser kommt nur ein Fehler.',
+ 'Den Server kann ich anpingen, aber unsere interne Webseite lädt einfach nicht – im Browser kommt nur ein Fehler. Bitte reparieren. Danke!',
  'Ein Ping prüft nur, ob der Rechner im Netz erreichbar ist. Ob eine Anwendung (z. B. der Webserver-Dienst) läuft, ist eine eigene Frage – das ist Schicht 7.',
  'https://mamrehn.github.io/netlab3-web/?b3_support_ticket=5',
  'Schicht 7 – Anwendung',
@@ -57,7 +57,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  'Webserver-Dienst am Server gestartet/aktiviert, Seite anschließend wieder erreichbar.'),
 
 (6, 'Ticket #6 – Verbindung zum Server seit gestern blockiert',
- 'Seit der Umstellung gestern komme ich nicht mehr auf den Server. Pingen kann ich ihn, aber der Verbindungsaufbau zur Anwendung scheitert.',
+ 'Seit der Umstellung gestern komme ich nicht mehr auf den Server. Pingen kann ich ihn, aber der Verbindungsaufbau zur Anwendung scheitert. Bitte reparieren. Danke!',
  'Eine Firewall kann gezielt einzelne Ports (Transportschicht) sperren. Dann ist der Rechner zwar per Ping erreichbar, der Dienst aber nicht.',
  'https://mamrehn.github.io/netlab3-web/?b3_support_ticket=6',
  'Schicht 4 – Transport',

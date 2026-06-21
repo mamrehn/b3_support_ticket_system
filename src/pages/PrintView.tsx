@@ -122,7 +122,18 @@ function TicketSheet({ ticket }: { ticket: Ticket }) {
             <Field label="Werkzeuge" value={toolsLine(ticket.submitted_tools)} />
             <Field label="Problem" value={ticket.submitted_problem} />
             <Field label="Lösung" value={ticket.submitted_solution} />
-            {ticket.trace_note && <Field label="Trace" value={ticket.trace_note} />}
+            {ticket.trace_note && (
+              <div>
+                <dt className="font-medium text-gray-600">Wireshark-Trace</dt>
+                <dd className="mt-1">
+                  <img
+                    src={ticket.trace_note}
+                    alt="Wireshark-Trace Screenshot"
+                    className="max-h-[28rem] w-full rounded border border-gray-300 object-contain"
+                  />
+                </dd>
+              </div>
+            )}
           </dl>
         </div>
 

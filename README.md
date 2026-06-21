@@ -92,11 +92,13 @@ SPA-Fallback robust. Bei abweichendem Repo-Namen `base` in `vite.config.ts`
 
 - **Login** → **Ticket-Übersicht** (Board) mit Status-Chips
   (`Offen` / `In Bearbeitung` / `Erledigt`); das eigene Ticket ist markiert.
-- **Ticket-Detail**: Störungsmeldung, optionaler Hinweis, Button „Szenario in
-  Filius öffnen", Diagnose-Formular (Schicht, Werkzeuge, Problem, Lösung,
-  optionaler Trace), **Speichern**.
+- **Ticket-Detail**: Störungsmeldung des meldenden Kollegen, optionaler Hinweis,
+  prominenter Button **„Netzwerk in Echtzeit analysieren"** (der rote Faden zur
+  Lösung), Diagnose-Formular (Schicht, Werkzeuge, Problem, Lösung, optionaler
+  **Wireshark-Trace als Screenshot-Upload**), **Speichern**.
 - **„… weiterleiten"** wird erst aktiv, wenn Schicht + ≥1 Werkzeug + Problem +
-  Lösung gefüllt sind; danach erscheint die **Musterlösung** (bleibt bis Reset).
+  Lösung gefüllt sind; danach **kommentiert eine erfahrene Kollegin** die
+  Diagnose (Abgleich mit der Musterlösung, bleibt bis Reset).
 - **Lehrkraft**: jedes Ticket bearbeiten, **Zurücksetzen** (leert nur die
   Eingaben), **PDF-Export** (Druckansicht → „Als PDF speichern"). Das Board
   läuft per **Realtime** live mit.
