@@ -95,7 +95,7 @@ export function Login() {
         </form>
 
         <p className="mt-4 text-center text-xs text-gray-400">
-          Zugangsdaten erhalten Sie von Ihrer Lehrkraft.
+          Zugangsdaten erhalten Sie separat.
         </p>
       </div>
     </div>
