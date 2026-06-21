@@ -13,6 +13,7 @@ function toolsLine(keys: string[] | null | undefined): string {
 export function PrintView() {
   const { tickets, loading, error } = useTickets();
   const [klasse, setKlasse] = useState('');
+  const [datum, setDatum] = useState(formatDate());
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -22,25 +23,13 @@ export function PrintView() {
           <Link to="/" className="text-sm font-medium text-accent-700 hover:underline">
             ← Zurück zur Übersicht
           </Link>
-          <div className="flex items-center gap-3">
-            <label className="text-sm text-gray-600">
-              Klasse:{' '}
-              <input
-                type="text"
-                value={klasse}
-                onChange={(e) => setKlasse(e.target.value)}
-                placeholder="z. B. BFI11a"
-                className="rounded-md border border-gray-300 px-2 py-1 text-sm outline-none focus:border-accent-600 focus:ring-1 focus:ring-accent-600"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-700"
-            >
-              Drucken / Als PDF speichern
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-700"
+          >
+            Drucken / Als PDF speichern
+          </button>
         </div>
       </div>
 
@@ -48,11 +37,33 @@ export function PrintView() {
         {/* Kopf des Lernblatts */}
         <header className="mb-6 border-b border-gray-300 pb-4">
           <h1 className="text-2xl font-bold">DataSol IT-Support – Lernblatt Netzwerkdiagnose</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Klasse: {klasse || '________________'} · Datum: {formatDate()}
-          </p>
-          <p className="mt-1 text-xs text-gray-500">
+          <div className="mt-2 flex flex-wrap items-center gap-x-8 gap-y-2 text-sm text-gray-700">
+            <label className="inline-flex items-center gap-2">
+              <span className="font-medium">Klasse:</span>
+              <input
+                type="text"
+                value={klasse}
+                onChange={(e) => setKlasse(e.target.value)}
+                placeholder="________"
+                className="w-44 border-b border-gray-400 bg-transparent px-1 py-0.5 text-gray-900 outline-none placeholder:text-gray-300 focus:border-accent-600 print:border-gray-500"
+              />
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <span className="font-medium">Datum:</span>
+              <input
+                type="text"
+                value={datum}
+                onChange={(e) => setDatum(e.target.value)}
+                placeholder="________"
+                className="w-32 border-b border-gray-400 bg-transparent px-1 py-0.5 text-gray-900 outline-none placeholder:text-gray-300 focus:border-accent-600 print:border-gray-500"
+              />
+            </label>
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
             Übersicht aller sechs Störungen mit Team-Diagnose und Musterlösung.
+          </p>
+          <p className="mt-1 text-xs text-gray-400 print:hidden">
+            Tipp: Klasse und Datum hier ausfüllen – die Werte werden mitgedruckt.
           </p>
         </header>
 
@@ -73,6 +84,11 @@ export function PrintView() {
 }
 
 function TicketSheet({ ticket }: { ticket: Ticket }) {
+  const link =
+    ticket.filius_deeplink && !ticket.filius_deeplink.includes('<')
+      ? ticket.filius_deeplink
+      : null;
+
   return (
     <article className="break-inside-avoid rounded-lg border border-gray-300 p-4 print:rounded-none">
       <h2 className="text-base font-bold">
@@ -80,6 +96,20 @@ function TicketSheet({ ticket }: { ticket: Ticket }) {
       </h2>
 
       <p className="mt-1 text-sm italic text-gray-700">„{ticket.reporter_text}"</p>
+
+      {link && (
+        <p className="mt-2 text-xs text-gray-600">
+          <span className="font-medium">Netzwerk-Analyse (Filius): </span>
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="break-all text-accent-700 underline print:text-gray-900 print:no-underline"
+          >
+            {link}
+          </a>
+        </p>
+      )}
 
       <div className="mt-3 grid gap-4 sm:grid-cols-2">
         {/* Team-Diagnose */}

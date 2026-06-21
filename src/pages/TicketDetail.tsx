@@ -6,10 +6,13 @@ import { Banner } from '../components/Banner';
 import { useAuth } from '../context/AuthContext';
 import { useTickets } from '../context/TicketsContext';
 import { canEditTicket, type Session } from '../lib/auth';
-import { LAYERS, TOOLS, toolLabel } from '../lib/constants';
+import { LAYERS, TOOLS } from '../lib/constants';
 import { saveSubmission } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import { isSubmissionComplete, type Ticket } from '../lib/types';
+import { reporterFor } from '../lib/personas';
+import { Avatar } from '../components/Avatar';
+import { ColleagueFeedback } from '../components/ColleagueFeedback';
 
 interface FormState {
   layer: string;
@@ -141,9 +144,11 @@ function TicketDetailView({
   };
 
   const hasFilius = !!ticket.filius_deeplink && !ticket.filius_deeplink.includes('<');
+  const reporter = reporterFor(ticket.id);
 
   return (
     <Layout>
+      <div className="mx-auto max-w-3xl">
       <Link to="/" className="text-sm font-medium text-accent-700 hover:underline">
         ← Zurück zur Übersicht
       </Link>
@@ -155,23 +160,79 @@ function TicketDetailView({
         <StatusChip ticket={ticket} />
       </div>
 
-      <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_320px]">
-        {/* Hauptspalte */}
-        <div className="space-y-6">
-          {/* Störungsmeldung */}
+      <div className="mt-5 space-y-6">
+          {/* Störungsmeldung – als Nachricht des meldenden Kollegen */}
           <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Störungsmeldung
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-gray-800">{ticket.reporter_text}</p>
-
-            {ticket.concept_hint && (
-              <div className="mt-4 rounded-lg border border-accent-200 bg-accent-50 p-3">
-                <p className="text-xs font-semibold text-accent-800">Hinweis – Was du dafür wissen musst</p>
-                <p className="mt-1 text-sm leading-relaxed text-accent-800/90">
-                  {ticket.concept_hint}
+            <div className="flex items-start gap-3">
+              <Avatar name={reporter.name} tone="neutral" />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-semibold text-gray-900">{reporter.name}</span>
+                  <span className="text-xs text-gray-500">{reporter.department}</span>
+                </div>
+                <p className="text-xs text-gray-400">hat diese Störung gemeldet</p>
+                <p className="mt-3 text-sm leading-relaxed text-gray-800">
+                  „{ticket.reporter_text}"
                 </p>
+
+                {ticket.concept_hint && (
+                  <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                    <p className="text-xs font-semibold text-gray-600">
+                      Hinweis – Was du dafür wissen musst
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                      {ticket.concept_hint}
+                    </p>
+                  </div>
+                )}
               </div>
+            </div>
+          </section>
+
+          {/* Roter Faden: ohne Netzanalyse keine Diagnose */}
+          <section className="rounded-xl border-2 border-accent-300 bg-accent-50 p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-accent-700">
+              Dein Lösungsweg
+            </p>
+            <h2 className="mt-1 text-lg font-semibold text-gray-900">
+              Netzwerk in Echtzeit analysieren
+            </h2>
+            <p className="mt-1 text-sm leading-relaxed text-gray-700">
+              Die Ursache dieser Störung erkennst du <strong>nur im laufenden Netz</strong>. Öffne
+              die Simulation, beobachte den Datenverkehr und prüfe mit deinen Werkzeugen, wo es
+              hakt – erst dann kannst du die Diagnose unten zuverlässig stellen.
+            </p>
+            {hasFilius ? (
+              <a
+                href={ticket.filius_deeplink!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center justify-center gap-2 rounded-md bg-accent-600 px-5 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-accent-700"
+              >
+                Netzwerk in Echtzeit analysieren
+                <svg
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="h-4 w-4"
+                  aria-hidden
+                >
+                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                </svg>
+              </a>
+            ) : (
+              <span
+                title="Für dieses Ticket ist noch kein Netzwerk-Link hinterlegt"
+                className="mt-4 inline-block cursor-not-allowed"
+              >
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex cursor-not-allowed items-center justify-center rounded-md bg-gray-200 px-5 py-3 text-base font-semibold text-gray-500"
+                >
+                  Netzwerk in Echtzeit analysieren
+                </button>
+              </span>
             )}
           </section>
 
@@ -192,20 +253,34 @@ function TicketDetailView({
                 <label htmlFor="layer" className="block text-sm font-medium text-gray-700">
                   Schicht
                 </label>
-                <select
-                  id="layer"
-                  value={form.layer}
-                  disabled={!editable}
-                  onChange={(e) => update('layer', e.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-accent-600 focus:ring-1 focus:ring-accent-600 disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">– bitte wählen –</option>
-                  {LAYERS.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative mt-1">
+                  <select
+                    id="layer"
+                    value={form.layer}
+                    disabled={!editable}
+                    onChange={(e) => update('layer', e.target.value)}
+                    className="w-full cursor-pointer appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-10 text-sm font-medium text-gray-900 shadow-sm outline-none transition hover:border-accent-400 focus:border-accent-600 focus:ring-2 focus:ring-accent-600/30 disabled:cursor-default disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500"
+                  >
+                    <option value="">– bitte wählen –</option>
+                    {LAYERS.map((l) => (
+                      <option key={l} value={l}>
+                        {l}
+                      </option>
+                    ))}
+                  </select>
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-accent-600"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
               </div>
 
               {/* Werkzeuge */}
@@ -334,77 +409,10 @@ function TicketDetailView({
             )}
           </section>
 
-          {/* Musterlösung (nach "weiterleiten" bzw. wenn freigegeben) */}
-          {ticket.revealed && <ModelSolution ticket={ticket} />}
+          {/* Antwort der erfahrenen Kollegin (nach "weiterleiten") */}
+          {ticket.revealed && <ColleagueFeedback ticket={ticket} />}
         </div>
-
-        {/* Seitenspalte: Filius */}
-        <aside className="space-y-4">
-          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Simulation</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Untersuche die Störung im externen Filius-Simulator.
-            </p>
-            {hasFilius ? (
-              <a
-                href={ticket.filius_deeplink!}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-700"
-              >
-                Szenario in Filius öffnen
-              </a>
-            ) : (
-              <span
-                title="Für dieses Ticket ist noch kein Filius-Link hinterlegt"
-                className="mt-3 block cursor-not-allowed"
-              >
-                <button
-                  type="button"
-                  disabled
-                  className="inline-flex w-full cursor-not-allowed items-center justify-center rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-500"
-                >
-                  Szenario in Filius öffnen
-                </button>
-              </span>
-            )}
-          </section>
-        </aside>
       </div>
     </Layout>
-  );
-}
-
-function ModelSolution({ ticket }: { ticket: Ticket }) {
-  return (
-    <section className="rounded-xl border border-green-200 bg-green-50 p-5 shadow-sm">
-      <h2 className="text-sm font-semibold text-green-900">Musterlösung zum Vergleich</h2>
-      <p className="mt-0.5 text-xs text-green-800/80">
-        Vergleiche deine Diagnose mit der Musterlösung. Keine Bewertung – nur zum Abgleich.
-      </p>
-
-      <dl className="mt-4 space-y-3 text-sm">
-        <div>
-          <dt className="font-medium text-green-900">Schicht</dt>
-          <dd className="text-green-900/90">{ticket.correct_layer}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-green-900">Werkzeuge</dt>
-          <dd className="text-green-900/90">
-            {ticket.correct_tools.length > 0
-              ? ticket.correct_tools.map(toolLabel).join(', ')
-              : '—'}
-          </dd>
-        </div>
-        <div>
-          <dt className="font-medium text-green-900">Problem</dt>
-          <dd className="text-green-900/90">{ticket.model_problem}</dd>
-        </div>
-        <div>
-          <dt className="font-medium text-green-900">Lösung</dt>
-          <dd className="text-green-900/90">{ticket.model_solution}</dd>
-        </div>
-      </dl>
-    </section>
   );
 }
