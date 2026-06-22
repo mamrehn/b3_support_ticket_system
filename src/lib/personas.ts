@@ -9,13 +9,13 @@ export interface Reporter {
 }
 
 export const REPORTERS: Record<number, Reporter> = {
-  1: { name: 'Markus Hoffmann', department: 'Buchhaltung' },
-  2: { name: 'Petra Wagner', department: 'Vertrieb' },
-  3: { name: 'Stefan Klein', department: 'Lager & Logistik' },
-  4: { name: 'Julia Becker', department: 'Marketing' },
-  5: { name: 'Thomas Schäfer', department: 'Personalabteilung' },
-  6: { name: 'Sabine Richter', department: 'Einkauf' },
-  7: { name: 'Daniel Wolf', department: 'Haustechnik' },
+  1: { name: 'Markus Hoffmann', department: 'Buchhaltung' }, // #1 keine Verbindung (L1)
+  2: { name: 'Petra Wagner', department: 'Vertrieb' }, // #2 anderes Netz (L3)
+  3: { name: 'Stefan Klein', department: 'Lager & Logistik' }, // #3 Subnetzmaske (L3)
+  4: { name: 'Daniel Wolf', department: 'Haustechnik' }, // #4 FCS/Störung (L2)
+  5: { name: 'Julia Becker', department: 'Marketing' }, // #5 DNS (L7)
+  6: { name: 'Thomas Schäfer', department: 'Personalabteilung' }, // #6 Webdienst (L7)
+  7: { name: 'Sabine Richter', department: 'Einkauf' }, // #7 Firewall (L4)
 };
 
 export function reporterFor(ticketId: number): Reporter {

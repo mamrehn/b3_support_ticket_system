@@ -14,7 +14,7 @@
 
 -- 1) teams-Tabelle (falls noch nicht vorhanden) + Rollen-Spalte ----------
 create table if not exists teams (
-  username  text primary key,            -- 'team1' .. 'team7', 'teacher'
+  username  text primary key,            -- 'user1' .. 'user7', 'teacher'
   password  text not null,
   ticket_id int references tickets(id),  -- NULL bei der Lehrkraft
   role      text not null default 'team' -- 'team' | 'teacher'
@@ -34,13 +34,13 @@ alter table teams enable row level security;
 --  insbesondere die teacher-Zeile nicht vergessen!)
 --
 -- insert into teams (username, password, role, ticket_id) values
---   ('team1','rot-3148',  'team', 1),
---   ('team2','blau-7290', 'team', 2),
---   ('team3','gruen-5063','team', 3),
---   ('team4','gelb-8217', 'team', 4),
---   ('team5','lila-4905', 'team', 5),
---   ('team6','grau-6734', 'team', 6),
---   ('team7','tuerkis-3382','team', 7),   -- Ticket #7 (Schicht 2); weglassen, falls lehrergeführt
+--   ('user1','rot-3148',  'team', 1),
+--   ('user2','blau-7290', 'team', 2),
+--   ('user3','gruen-5063','team', 3),
+--   ('user4','gelb-8217', 'team', 4),
+--   ('user5','lila-4905', 'team', 5),
+--   ('user6','grau-6734', 'team', 6),
+--   ('user7','tuerkis-3382','team', 7),
 --   ('teacher','datasol-lehrer-2026','teacher', null)
 -- on conflict (username) do update
 --   set password = excluded.password,

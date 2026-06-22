@@ -65,9 +65,9 @@ damit es den Schreib-RPCs mitgegeben werden kann.
 - Schreiben läuft ausschließlich über `submit_ticket` / `reset_tickets`
   (SECURITY DEFINER). Direktes anon-`UPDATE` ist per RLS unterbunden.
 - Ein **Team** schreibt **nur sein eigenes** Ticket (Zuordnung über
-  `teams.ticket_id`; Ticket #7 erhält ein eigenes Team oder bleibt lehrergeführt) –
-  serverseitig erzwungen. Die **Lehrkraft** (`teacher`) schreibt jedes Ticket,
-  darf zurücksetzen und sieht die Admin-Aktionen.
+  `teams.ticket_id`, z. B. `user1`→#1 … `user7`→#7) – serverseitig erzwungen.
+  Die **Lehrkraft** (`teacher`) schreibt jedes Ticket, darf zurücksetzen und
+  sieht die Admin-Aktionen.
 
 Zugangsdaten werden in der Tabelle `teams` gepflegt (siehe `supabase/rpc-auth.sql`)
 und auf Papier verteilt. Determinierte Schüler:innen müssten für ein fremdes
