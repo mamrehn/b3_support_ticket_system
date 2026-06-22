@@ -39,8 +39,8 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  'Korrekte Subnetzmaske laut Netzplan gesetzt, danach sind alle Rechner im Subnetz erreichbar.'),
 
 (4, 'Ticket #4 – Ständige Aussetzer trotz blinkender Netzwerk-LED',
- 'Bei mir ist der Wurm drin: Mal lädt eine Seite, dann wieder nicht, Downloads brechen ständig mittendrin ab. Dabei blinkt die Lampe an der Netzwerkbuchse munter vor sich hin – es müsste doch eigentlich alles in Ordnung sein? Seit Kurzem steht außerdem ein großes Gerät der Haustechnik direkt neben meinem Netzwerkkabel. Bitte reparieren. Danke!',
- 'Jeder Ethernet-Rahmen trägt am Ende eine Prüfsumme (FCS/CRC). Stimmt sie beim Empfänger nicht, wurde der Rahmen unterwegs gestört – z. B. durch ein beschädigtes Kabel oder elektrische Störquellen in der Nähe. Solche Rahmen werden verworfen, obwohl die Verbindungs-LED leuchtet.',
+ 'Bei mir ist der Wurm drin: Mal lädt eine Seite, dann wieder nicht, Downloads brechen ständig mittendrin ab. Dabei blinkt die Lampe an der Netzwerkbuchse munter vor sich hin – es müsste doch eigentlich alles in Ordnung sein? Seit Kurzem steht außerdem ein großes Gerät der Haustechnik direkt neben meinem PC. Kann das was mit dem Umbau zu tun haben? Bitte reparieren. Danke!',
+ null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_4',
  'Schicht 2 – Sicherung',
  array['connview','ping','wireshark'],
