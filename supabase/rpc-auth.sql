@@ -14,7 +14,7 @@
 
 -- 1) teams-Tabelle (falls noch nicht vorhanden) + Rollen-Spalte ----------
 create table if not exists teams (
-  username  text primary key,            -- 'team1' .. 'team6', 'teacher'
+  username  text primary key,            -- 'team1' .. 'team7', 'teacher'
   password  text not null,
   ticket_id int references tickets(id),  -- NULL bei der Lehrkraft
   role      text not null default 'team' -- 'team' | 'teacher'
@@ -40,6 +40,7 @@ alter table teams enable row level security;
 --   ('team4','gelb-8217', 'team', 4),
 --   ('team5','lila-4905', 'team', 5),
 --   ('team6','grau-6734', 'team', 6),
+--   ('team7','tuerkis-3382','team', 7),   -- Ticket #7 (Schicht 2); weglassen, falls lehrergeführt
 --   ('teacher','datasol-lehrer-2026','teacher', null)
 -- on conflict (username) do update
 --   set password = excluded.password,

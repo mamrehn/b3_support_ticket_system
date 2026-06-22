@@ -1,11 +1,11 @@
 -- =====================================================================
--- DataSol IT-Support – Seed der sechs Ticket-Vorlagen
+-- DataSol IT-Support – Seed der Ticket-Vorlagen
 -- =====================================================================
 -- Nach schema.sql ausführen. Re-runnable: aktualisiert NUR die Vorlagen-
 -- Spalten, die Schülereingaben (submitted_*, revealed) bleiben unangetastet.
 --
 -- Die Texte für Ticket 1 und 4 stammen aus der Aufgabenstellung. Tickets
--- 2, 3, 5, 6 sind analog aus dem Ticket-Paket abgeleitet – bei Bedarf hier
+-- 2, 3, 5, 6, 7 sind analog aus dem Ticket-Paket abgeleitet – bei Bedarf hier
 -- durch die echten Paket-Texte ersetzen. Filius-Deeplink-Schema:
 -- https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_<ticket-id>.
 -- ---------------------------------------------------------------------
@@ -40,7 +40,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
 
 (4, 'Ticket #4 – Intranet per Name nicht erreichbar',
  'Ich will unser Intranet unter intranet.datasol.local öffnen – es kommt aber nur eine Fehlermeldung. Eine Kollegin gab mir eine Zahlenadresse, damit geht es plötzlich. Bitte reparieren. Danke!',
- 'Namen wie intranet.datasol.local übersetzt ein DNS-Server in IP-Adressen. Jeder PC muss die Adresse seines DNS-Servers kennen.',
+ null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_4',
  'Schicht 7 – Anwendung',
  array['nslookup','browser'],
@@ -49,7 +49,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
 
 (5, 'Ticket #5 – Webseite lädt nicht, Server antwortet aber',
  'Den Server kann ich anpingen, aber unsere interne Webseite lädt einfach nicht – im Browser kommt nur ein Fehler. Bitte reparieren. Danke!',
- 'Ein Ping prüft nur, ob der Rechner im Netz erreichbar ist. Ob eine Anwendung (z. B. der Webserver-Dienst) läuft, ist eine eigene Frage – das ist Schicht 7.',
+ null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_5',
  'Schicht 7 – Anwendung',
  array['ping','browser','service'],
@@ -63,7 +63,16 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  'Schicht 4 – Transport',
  array['ping','browser','firewall'],
  'Ping ok, aber Verbindungsaufbau scheitert → die Firewall sperrte den benötigten Port.',
- 'Firewall-Regel angepasst und den benötigten Port für den Dienst freigegeben.')
+ 'Firewall-Regel angepasst und den benötigten Port für den Dienst freigegeben.'),
+
+(7, 'Ticket #7 – Ständige Aussetzer trotz blinkender Netzwerk-LED',
+ 'Bei mir ist der Wurm drin: Mal lädt eine Seite, dann wieder nicht, Downloads brechen ständig mittendrin ab. Dabei blinkt die Lampe an der Netzwerkbuchse munter vor sich hin – es müsste doch eigentlich alles in Ordnung sein? Seit Kurzem steht außerdem ein großes Gerät der Haustechnik direkt neben meinem Netzwerkkabel. Bitte reparieren. Danke!',
+ 'Jeder Ethernet-Rahmen trägt am Ende eine Prüfsumme (FCS/CRC). Stimmt sie beim Empfänger nicht, wurde der Rahmen unterwegs gestört – z. B. durch ein beschädigtes Kabel oder elektrische Störquellen in der Nähe. Solche Rahmen werden verworfen, obwohl die Verbindungs-LED leuchtet.',
+ 'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_7',
+ 'Schicht 2 – Sicherung',
+ array['connview','ping','wireshark'],
+ 'Die Verbindung bestand (LED blinkte), aber viele Ethernet-Rahmen kamen mit fehlerhafter Prüfsumme (FCS) an und wurden verworfen → das Kabel war beschädigt bzw. lag direkt neben einer elektrischen Störquelle.',
+ 'Beschädigtes Kabel ersetzt und ausreichend Abstand zur Störquelle geschaffen (bzw. geschirmtes Kabel verwendet). Danach keine FCS-Fehler mehr, Verbindung stabil.')
 
 on conflict (id) do update set
   title           = excluded.title,

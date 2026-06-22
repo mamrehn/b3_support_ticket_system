@@ -38,7 +38,7 @@ create policy "read all" on tickets for select using (true);
 drop policy if exists "update all" on tickets;
 create policy "update all" on tickets for update using (true) with check (true);
 
--- Kein insert/delete für anon – die sechs Zeilen werden einmalig per seed.sql angelegt.
+-- Kein insert/delete für anon – die Ticket-Zeilen werden einmalig per seed.sql angelegt.
 
 -- Realtime aktivieren, damit die Lehrer-Übersicht live mitläuft.
 do $$

@@ -15,6 +15,7 @@ export const REPORTERS: Record<number, Reporter> = {
   4: { name: 'Julia Becker', department: 'Marketing' },
   5: { name: 'Thomas Schäfer', department: 'Personalabteilung' },
   6: { name: 'Sabine Richter', department: 'Einkauf' },
+  7: { name: 'Daniel Wolf', department: 'Haustechnik' },
 };
 
 export function reporterFor(ticketId: number): Reporter {

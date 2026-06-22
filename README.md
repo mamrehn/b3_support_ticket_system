@@ -43,7 +43,7 @@ Weitere Skripte: `npm run build` (Typecheck + Produktivbuild), `npm run preview`
 1. Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Im **SQL Editor** nacheinander ausführen:
    - `supabase/schema.sql` – Tabelle, RLS-Policies, Realtime.
-   - `supabase/seed.sql` – die sechs Ticket-Vorlagen (re-runnable).
+   - `supabase/seed.sql` – die Ticket-Vorlagen (re-runnable).
    - `supabase/rpc-auth.sql` – serverseitige Auth + Schreibschutz (siehe §2).
 3. In `rpc-auth.sql` den auskommentierten `insert into teams …` mit den echten
    Passwörtern befüllen – **inkl. der `teacher`-Zeile** – und ausführen.
@@ -64,7 +64,8 @@ damit es den Schreib-RPCs mitgegeben werden kann.
 - Jeder angemeldete Nutzer **liest alle** Tickets (offene SELECT-Policy → auch Realtime).
 - Schreiben läuft ausschließlich über `submit_ticket` / `reset_tickets`
   (SECURITY DEFINER). Direktes anon-`UPDATE` ist per RLS unterbunden.
-- Ein **Team** schreibt **nur sein eigenes** Ticket (`user1`→#1 … `user6`→#6) –
+- Ein **Team** schreibt **nur sein eigenes** Ticket (Zuordnung über
+  `teams.ticket_id`; Ticket #7 erhält ein eigenes Team oder bleibt lehrergeführt) –
   serverseitig erzwungen. Die **Lehrkraft** (`teacher`) schreibt jedes Ticket,
   darf zurücksetzen und sieht die Admin-Aktionen.
 
@@ -107,6 +108,6 @@ SPA-Fallback robust. Bei abweichendem Repo-Namen `base` in `vite.config.ts`
 
 ## Datenmodell
 
-Eine Tabelle `tickets`, eine vorab eingefügte Zeile je Ticket (1–6) mit fester
+Eine Tabelle `tickets`, eine vorab eingefügte Zeile je Ticket mit fester
 Definition **und** aktueller Einreichung. Reset leert nur die Einreichungs-
 spalten. Details siehe `supabase/schema.sql`.

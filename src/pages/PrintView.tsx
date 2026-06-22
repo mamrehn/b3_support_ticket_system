@@ -60,7 +60,7 @@ export function PrintView() {
             </label>
           </div>
           <p className="mt-2 text-xs text-gray-500">
-            Übersicht aller sechs Störungen mit Team-Diagnose und Musterlösung.
+            Übersicht aller Störungen mit Team-Diagnose und Musterlösung.
           </p>
           <p className="mt-1 text-xs text-gray-400 print:hidden">
             Tipp: Klasse und Datum hier ausfüllen – die Werte werden mitgedruckt.
