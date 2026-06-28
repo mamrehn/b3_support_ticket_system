@@ -16,7 +16,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_1',
  'Schicht 1 – Bitübertragung',
- array['connview','ipconfig'],
+ array['connview','ping'],
  'Kein Link – die physische Verbindung fehlte.',
  'Kabel wieder angeschlossen / an korrekten Switch-Port gesteckt.'),
 
