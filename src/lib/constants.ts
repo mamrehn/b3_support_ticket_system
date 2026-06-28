@@ -16,13 +16,13 @@ export type Layer = (typeof LAYERS)[number];
 
 // Werkzeug-Checkboxen: key (in correct_tools/submitted_tools gespeichert) -> deutsches Label.
 export const TOOLS: { key: string; label: string }[] = [
-  { key: 'ping', label: 'Ping' },
-  { key: 'tracert', label: 'Tracert' },
+  { key: 'ping', label: 'ping' },
+  { key: 'tracert', label: 'tracert' },
   { key: 'ipconfig', label: 'ipconfig' },
-  { key: 'arp', label: 'arp -a' },
+  { key: 'arp', label: 'arp' },
   { key: 'nslookup', label: 'nslookup' },
-  { key: 'wireshark', label: 'Wireshark (Trace)' },
-  { key: 'connview', label: 'Verbindungsansicht / LED' },
+  { key: 'wireshark', label: 'Datenverkehr-Trace (🦈)' },
+  { key: 'connview', label: 'Verbindungs-LEDs / Kabel' },
   { key: 'browser', label: 'Browser-Aufruf' },
   { key: 'service', label: 'Dienststatus am Server' },
   { key: 'firewall', label: 'Firewall-Konfiguration' },

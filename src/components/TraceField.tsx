@@ -44,9 +44,10 @@ export function TraceField({
 
       {editable && (
         <p className="mt-1 text-xs leading-relaxed text-gray-500">
-          So geht&apos;s: In der Simulation oben auf das{' '}
-          <span className="rounded border border-gray-300 bg-gray-50 px-1">🔍</span> („Datenverkehr")
-          klicken – der Trace öffnet sich. Davon einen ganz normalen Screenshot machen und hier
+          So geht&apos;s: Im <strong>Simulationsmodus</strong> unten am Bildschirmrand auf die Leiste{' '}
+          <span className="rounded border border-gray-300 bg-gray-50 px-1">🦈 Datenverkehr ▴</span>{' '}
+          klicken – der Trace öffnet sich (alternativ Rechtsklick auf ein Gerät →{' '}
+          <em>Datenverkehr&nbsp;(IP)</em>). Davon einen ganz normalen Screenshot machen und hier
           hochladen.
         </p>
       )}
