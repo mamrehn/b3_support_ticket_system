@@ -6,8 +6,8 @@ import { Banner } from '../components/Banner';
 import { useAuth } from '../context/AuthContext';
 import { useTickets } from '../context/TicketsContext';
 import { canEditTicket, type Session } from '../lib/auth';
-import { LAYERS, TOOLS } from '../lib/constants';
 import { openTicket, saveSubmission } from '../lib/api';
+import { collectTools, parseFlow } from '../lib/flowchart';
 import { formatDateTime } from '../lib/format';
 import { isSubmissionComplete, type Ticket } from '../lib/types';
 import { reporterFor } from '../lib/personas';
@@ -16,9 +16,9 @@ import { ColleagueFeedback } from '../components/ColleagueFeedback';
 import { DiagnosisFlowchart } from '../components/DiagnosisFlowchart';
 import { TraceField } from '../components/TraceField';
 
+// Schicht und Werkzeuge werden nicht mehr frei eingegeben, sondern aus dem
+// dokumentierten Diagnoseweg (path) abgeleitet – siehe persist().
 interface FormState {
-  layer: string;
-  tools: string[];
   problem: string;
   solution: string;
   trace: string;
@@ -27,8 +27,6 @@ interface FormState {
 
 function fromTicket(t: Ticket): FormState {
   return {
-    layer: t.submitted_layer ?? '',
-    tools: t.submitted_tools ?? [],
     problem: t.submitted_problem ?? '',
     solution: t.submitted_solution ?? '',
     trace: t.trace_note ?? '',
@@ -114,8 +112,6 @@ function TicketDetailView({
   }, [ticket.id, ticket.opened_at, session, refetch]);
 
   const complete = isSubmissionComplete({
-    submitted_layer: form.layer || null,
-    submitted_tools: form.tools,
     submitted_problem: form.problem || null,
     submitted_solution: form.solution || null,
     diagnosis_path: form.path,
@@ -127,22 +123,17 @@ function TicketDetailView({
     setSavedAt(null);
   };
 
-  const toggleTool = (key: string) => {
-    update(
-      'tools',
-      form.tools.includes(key) ? form.tools.filter((k) => k !== key) : [...form.tools, key],
-    );
-  };
-
   const persist = async (reveal: boolean) => {
     setSaving(true);
     setError(null);
     try {
+      // Schicht + Werkzeuge aus dem dokumentierten Diagnoseweg ableiten.
+      const flow = parseFlow(form.path);
       await saveSubmission(
         ticket.id,
         {
-          submitted_layer: form.layer || null,
-          submitted_tools: form.tools,
+          submitted_layer: flow.fault?.step.layerValue ?? null,
+          submitted_tools: collectTools(flow),
           submitted_problem: form.problem.trim() || null,
           submitted_solution: form.solution.trim() || null,
           trace_note: form.trace.trim() || null,
@@ -266,107 +257,18 @@ function TicketDetailView({
             </div>
 
             <div className="mt-4 space-y-5">
-              {/* Geführte Fehlersuche entlang des Ablaufdiagramms (Informationsblatt) */}
+              {/* Geführte Fehlersuche: ersetzt die früheren freien Eingabefelder.
+                  Schicht + Werkzeuge stecken im dokumentierten Diagnoseweg,
+                  Ursache/Behebung werden am Fehler-Endpunkt beschrieben. */}
               <DiagnosisFlowchart
                 path={form.path}
+                problem={form.problem}
+                solution={form.solution}
                 editable={editable}
-                onChange={(p) => update('path', p)}
+                onPathChange={(p) => update('path', p)}
+                onProblemChange={(v) => update('problem', v)}
+                onSolutionChange={(v) => update('solution', v)}
               />
-
-              {/* Schicht */}
-              <div>
-                <label htmlFor="layer" className="block text-sm font-medium text-gray-700">
-                  Schicht
-                </label>
-                <div className="relative mt-1">
-                  <select
-                    id="layer"
-                    value={form.layer}
-                    disabled={!editable}
-                    onChange={(e) => update('layer', e.target.value)}
-                    className="w-full cursor-pointer appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 pr-10 text-sm font-medium text-gray-900 shadow-sm outline-none transition hover:border-accent-400 focus:border-accent-600 focus:ring-2 focus:ring-accent-600/30 disabled:cursor-default disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500"
-                  >
-                    <option value="">– bitte wählen –</option>
-                    {LAYERS.map((l) => (
-                      <option key={l} value={l}>
-                        {l}
-                      </option>
-                    ))}
-                  </select>
-                  <svg
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden
-                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-accent-600"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Werkzeuge */}
-              <fieldset>
-                <legend className="text-sm font-medium text-gray-700">Eingesetzte Werkzeuge</legend>
-                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {TOOLS.map((tool) => (
-                    <label
-                      key={tool.key}
-                      className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
-                        editable ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default'
-                      } ${
-                        form.tools.includes(tool.key)
-                          ? 'border-accent-300 bg-accent-50'
-                          : 'border-gray-300 bg-white'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={form.tools.includes(tool.key)}
-                        disabled={!editable}
-                        onChange={() => toggleTool(tool.key)}
-                        className="h-4 w-4 rounded border-gray-300 text-accent-600 focus:ring-accent-600 disabled:opacity-60"
-                      />
-                      <span className="text-gray-800">{tool.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-
-              {/* Problembeschreibung */}
-              <div>
-                <label htmlFor="problem" className="block text-sm font-medium text-gray-700">
-                  Problembeschreibung
-                </label>
-                <textarea
-                  id="problem"
-                  rows={3}
-                  value={form.problem}
-                  disabled={!editable}
-                  onChange={(e) => update('problem', e.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-accent-600 focus:ring-1 focus:ring-accent-600 disabled:bg-gray-50 disabled:text-gray-500"
-                  placeholder="Was ist die Ursache der Störung?"
-                />
-              </div>
-
-              {/* Lösung */}
-              <div>
-                <label htmlFor="solution" className="block text-sm font-medium text-gray-700">
-                  Lösung
-                </label>
-                <textarea
-                  id="solution"
-                  rows={3}
-                  value={form.solution}
-                  disabled={!editable}
-                  onChange={(e) => update('solution', e.target.value)}
-                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-accent-600 focus:ring-1 focus:ring-accent-600 disabled:bg-gray-50 disabled:text-gray-500"
-                  placeholder="Wie wurde die Störung behoben?"
-                />
-              </div>
 
               {/* Wireshark-Trace als Screenshot */}
               <TraceField
@@ -399,7 +301,7 @@ function TicketDetailView({
                     title={
                       complete
                         ? undefined
-                        : 'Bitte zuerst das Ablaufdiagramm bis zu einem Endpunkt durchlaufen und alle Felder ausfüllen'
+                        : 'Bitte zuerst die Fehler-Schicht im Ablaufdiagramm finden und Ursache + Behebung beschreiben'
                     }
                     className={complete ? undefined : 'cursor-not-allowed'}
                   >

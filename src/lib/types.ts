@@ -1,4 +1,4 @@
-import { walkFlow } from './flowchart';
+import { parseFlow } from './flowchart';
 
 // Eine Zeile der Tabelle `tickets` (siehe supabase/schema.sql).
 export interface Ticket {
@@ -48,19 +48,15 @@ export function ticketStatus(t: Ticket): TicketStatus {
   return hasInput ? 'in_bearbeitung' : 'offen';
 }
 
-// Die Felder, die "weiterleiten" verlangt: Ablaufdiagramm bis zu einem Endpunkt
-// durchlaufen + Schicht + ≥1 Werkzeug + Problem + Lösung.
+// "Weiterleiten" verlangt: Fehler-Schicht im Ablaufdiagramm gefunden (Schicht
+// und Werkzeuge stecken dann im Diagnoseweg) + Ursache + Behebung beschrieben.
 export function isSubmissionComplete(t: {
-  submitted_layer: string | null;
-  submitted_tools: string[];
   submitted_problem: string | null;
   submitted_solution: string | null;
   diagnosis_path: string[];
 }): boolean {
   return (
-    walkFlow(t.diagnosis_path).result !== null &&
-    !!t.submitted_layer?.trim() &&
-    (t.submitted_tools?.length ?? 0) > 0 &&
+    parseFlow(t.diagnosis_path).fault !== null &&
     !!t.submitted_problem?.trim() &&
     !!t.submitted_solution?.trim()
   );

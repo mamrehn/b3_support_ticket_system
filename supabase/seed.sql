@@ -8,6 +8,10 @@
 -- 2, 3, 5, 6, 7 sind analog aus dem Ticket-Paket abgeleitet – bei Bedarf hier
 -- durch die echten Paket-Texte ersetzen. Filius-Deeplink-Schema:
 -- https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_<ticket-id>.
+--
+-- correct_tools: nur Werkzeuge verwenden, die der geführte Diagnoseweg bis zur
+-- Fehler-Schicht auch anbietet (siehe LAYER_STEPS in src/lib/flowchart.ts) –
+-- sonst bemängelt das Feedback Werkzeuge, die gar nicht anklickbar waren.
 -- ---------------------------------------------------------------------
 
 insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, correct_layer, correct_tools, model_problem, model_solution) values
@@ -16,16 +20,16 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_1',
  'Schicht 1 – Bitübertragung',
- array['connview','ping'],
+ array['connview'],
  'Kein Link – die physische Verbindung fehlte.',
  'Kabel wieder angeschlossen / an korrekten Switch-Port gesteckt.'),
 
 (2, 'Ticket #2 – Anderes Netz nicht erreichbar',
  'Die Kollegen direkt neben mir kann ich anpingen, aber an die Server in der anderen Abteilung komme ich nicht heran. Das Internet geht auch nicht.',
- 'Pakete in fremde Netze schickt ein PC an sein Standardgateway (den Router). Fehlt diese Adresse, bleibt nur das eigene Teilnetz erreichbar.',
+ null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_2',
  'Schicht 3 – Vermittlung',
- array['ipconfig','ping','tracert'],
+ array['ipconfig','ping'],
  'Lokales Netz erreichbar, andere Netze nicht → das Standardgateway war nicht/falsch eingetragen.',
  'Korrektes Standardgateway (Router-IP) laut Netzplan im Client eingetragen.'),
 
@@ -34,7 +38,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_3',
  'Schicht 3 – Vermittlung',
- array['ipconfig','ping','arp'],
+ array['ipconfig','ping'],
  'Falsche Subnetzmaske → ein Teil der Adressen wurde fälschlich als „fremdes Netz" behandelt und nicht erreicht.',
  'Korrekte Subnetzmaske laut Netzplan gesetzt, danach sind alle Rechner im Subnetz erreichbar.'),
 
@@ -43,7 +47,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_4',
  'Schicht 2 – Sicherung',
- array['connview','ping','wireshark'],
+ array['connview','wireshark'],
  'Die Verbindung bestand (LED blinkte), aber viele Ethernet-Rahmen kamen mit fehlerhafter Prüfsumme (FCS) an und wurden verworfen → das Kabel war beschädigt bzw. lag direkt neben einer elektrischen Störquelle.',
  'Beschädigtes Kabel ersetzt und ausreichend Abstand zur Störquelle geschaffen (bzw. geschirmtes Kabel verwendet). Danach keine FCS-Fehler mehr, Verbindung stabil.'),
 
@@ -61,7 +65,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_6',
  'Schicht 7 – Anwendung',
- array['ping','browser','service'],
+ array['ping','nslookup','browser'],
  'Ping erfolgreich (Netz in Ordnung), Webseite lädt nicht → der Webserver-Dienst war gestoppt.',
  'Webserver-Dienst am Server gestartet/aktiviert, Seite anschließend wieder erreichbar.'),
 
@@ -70,7 +74,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
  'Eine Firewall kann gezielt einzelne Ports (Transportschicht) sperren. Dann ist der Rechner zwar per Ping erreichbar, der Dienst aber nicht.',
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_7',
  'Schicht 4 – Transport',
- array['ping','browser','firewall'],
+ array['ping','firewall'],
  'Ping ok, aber Verbindungsaufbau scheitert → die Firewall sperrte den benötigten Port.',
  'Firewall-Regel angepasst und den benötigten Port für den Dienst freigegeben.')
 

@@ -35,10 +35,10 @@ export function ColleagueFeedback({ ticket }: { ticket: Ticket }) {
             {fb.rightTools.length > 0 && (
               <p>{joinDe(fb.rightTools)} habt ihr genau richtig eingesetzt.</p>
             )}
-            {fb.pathCorrect && (
+            {fb.faultDocumented && fb.layerCorrect && (
               <p>
-                Euer Weg durch das Ablaufdiagramm ist sauber dokumentiert und endet genau an der
-                richtigen Stelle (<strong>{fb.pathResult!.layerLabel}</strong>) – so sieht
+                Euer Prüfprotokoll ist sauber: Schicht für Schicht von unten nach oben, bis der
+                Fehler auf <strong>{fb.correctLayer}</strong> sichtbar wurde – genau so sieht
                 strukturierte Fehlersuche aus.
               </p>
             )}
@@ -47,29 +47,19 @@ export function ColleagueFeedback({ ticket }: { ticket: Ticket }) {
             )}
 
             {/* Ausführlicher, was zu überdenken ist */}
-            {!fb.pathCorrect && (
+            {!fb.faultDocumented && (
               <p>
-                {fb.pathResult ? (
-                  <>
-                    Euer Weg durch das Ablaufdiagramm endet bei{' '}
-                    <em>{fb.pathResult.layerLabel}</em> – da hat euch eine Raute auf die falsche
-                    Spur geschickt. Geht das Diagramm noch einmal Schritt für Schritt durch und
-                    prüft jede Antwort wirklich im laufenden Netz.
-                  </>
-                ) : (
-                  <>
-                    Mir fehlt euer dokumentierter Weg durch das Ablaufdiagramm – arbeitet die
-                    Rauten vom Informationsblatt der Reihe nach ab, dann führt euch das Diagramm
-                    fast von allein zur richtigen Schicht.
-                  </>
-                )}
+                Mir fehlt euer dokumentierter Prüfweg – arbeitet das Ablaufdiagramm Schicht für
+                Schicht ab (1 → 2 → 3 → 4 → 7), dann führt euch jede Antwort fast von allein zur
+                richtigen Schicht.
               </p>
             )}
-            {!fb.layerCorrect && (
+            {fb.faultDocumented && !fb.layerCorrect && (
               <p>
-                Eine Sache solltet ihr aber nochmal überdenken: Die betroffene Schicht ist nicht{' '}
-                {fb.submittedLayer ? <em>{fb.submittedLayer}</em> : 'die gewählte'}, sondern{' '}
-                <strong>{fb.correctLayer}</strong>.
+                Eine Sache solltet ihr aber nochmal überdenken: Euer Prüfweg endet auf{' '}
+                {fb.submittedLayer ? <em>{fb.submittedLayer}</em> : 'der falschen Schicht'} – die
+                Störung liegt aber auf <strong>{fb.correctLayer}</strong>. Geht die Schichten noch
+                einmal von Schicht 1 an durch und prüft jede Antwort wirklich im laufenden Netz.
               </p>
             )}
             {fb.missingTools.length > 0 && (
@@ -80,8 +70,8 @@ export function ColleagueFeedback({ ticket }: { ticket: Ticket }) {
             )}
             {fb.extraTools.length > 0 && (
               <p>
-                <strong>{joinDe(fb.extraTools)}</strong> braucht ihr hier eigentlich nicht; das
-                führt euch eher auf eine falsche Fährte.
+                <strong>{joinDe(fb.extraTools)}</strong> braucht ihr an der Fehler-Schicht
+                eigentlich nicht; das führt euch eher auf eine falsche Fährte.
               </p>
             )}
 

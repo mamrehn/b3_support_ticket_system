@@ -51,10 +51,11 @@ Weitere Skripte: `npm run build` (Typecheck + Produktivbuild), `npm run preview`
    (durch `schema.sql` bereits gesetzt).
 5. URL und **anon**-Key aus **Project Settings → API** übernehmen.
 
-**Bestehende Installationen aktualisieren:** `schema.sql` und `rpc-auth.sql`
-einfach erneut ausführen (beide sind idempotent). Sie ziehen die Spalten
-`diagnosis_path` (dokumentierter Weg durchs Ablaufdiagramm) und `opened_at`
-(Startzeit der Bearbeitung) nach und ersetzen `submit_ticket` durch die neue
+**Bestehende Installationen aktualisieren:** `schema.sql`, `seed.sql` und
+`rpc-auth.sql` einfach erneut ausführen (alle sind idempotent). Sie ziehen die
+Spalten `diagnosis_path` (dokumentierter Weg durchs Ablaufdiagramm) und
+`opened_at` (Startzeit der Bearbeitung) nach, aktualisieren die
+`correct_tools` der Vorlagen und ersetzen `submit_ticket` durch die neue
 Signatur inkl. `open_ticket`.
 
 ---
@@ -104,15 +105,17 @@ SPA-Fallback robust. Bei abweichendem Repo-Namen `base` in `vite.config.ts`
   gespeichert wurde) – so ist sichtbar, wie schnell ein Ticket gelöst wurde.
 - **Ticket-Detail**: Störungsmeldung des meldenden Kollegen, optionaler Hinweis,
   prominenter Button **„Netzwerk in Echtzeit analysieren"** (der rote Faden zur
-  Lösung), Diagnose-Formular mit **geführter Fehlersuche entlang des
-  Ablaufdiagramms** aus `info-sheet-troubleshooting.md` (Raute für Raute
-  beantworten, jeder Schritt wird als Protokoll dokumentiert), Schicht,
-  Werkzeuge, Problem, Lösung, optionaler **Wireshark-Trace als
+  Lösung) und die **geführte Fehlersuche streng nach dem Ablaufdiagramm**:
+  Schicht 1 → 2 → 3 → 4 → 7 der Reihe nach prüfen, pro Schicht die eingesetzten
+  Werkzeuge abhaken (Pflicht) und „Ja – OK" oder „Nein – Fehler gefunden"
+  beantworten. Am Fehler-Endpunkt beschreiben die Teams kurz **Ursache** und
+  **Behebung**. Schicht und Werkzeuge werden aus dem Protokoll abgeleitet –
+  freie Eingabefelder gibt es nicht mehr. Dazu optionaler **Wireshark-Trace als
   Screenshot-Upload**, **Speichern**.
-- **„… weiterleiten"** wird erst aktiv, wenn das Ablaufdiagramm bis zu einem
-  Endpunkt durchlaufen ist **und** Schicht + ≥1 Werkzeug + Problem + Lösung
-  gefüllt sind; danach **kommentiert eine erfahrene Kollegin** die Diagnose
-  (Abgleich mit der Musterlösung inkl. Diagnoseweg, bleibt bis Reset).
+- **„… weiterleiten"** wird erst aktiv, wenn die Fehler-Schicht im Diagramm
+  gefunden und Ursache + Behebung beschrieben sind; danach **kommentiert eine
+  erfahrene Kollegin** die Diagnose (Abgleich mit der Musterlösung inkl.
+  Prüfprotokoll, bleibt bis Reset).
 - **Lehrkraft**: jedes Ticket bearbeiten, **Zurücksetzen** (leert nur die
   Eingaben), **PDF-Export** (Druckansicht → „Als PDF speichern"). Das Board
   läuft per **Realtime** live mit.
