@@ -1,4 +1,5 @@
 import { toolLabel } from './constants';
+import { walkFlow, type FlowResult } from './flowchart';
 import type { Ticket } from './types';
 
 // Vergleicht die Einreichung eines Teams mit der Musterlösung – Basis für den
@@ -10,6 +11,8 @@ export interface FeedbackData {
   rightTools: string[]; // Labels: richtig eingesetzt
   missingTools: string[]; // Labels: fehlen noch
   extraTools: string[]; // Labels: überflüssig
+  pathResult: FlowResult | null; // Endpunkt des dokumentierten Diagnosewegs (null = nicht abgeschlossen)
+  pathCorrect: boolean; // Endpunkt passt zur richtigen Schicht
   hasIssues: boolean;
   modelProblem: string;
   modelSolution: string;
@@ -25,6 +28,9 @@ export function buildFeedback(t: Ticket): FeedbackData {
 
   const layerCorrect = !!t.submitted_layer && t.submitted_layer === t.correct_layer;
 
+  const pathResult = walkFlow(t.diagnosis_path).result;
+  const pathCorrect = !!pathResult && pathResult.layers.includes(t.correct_layer);
+
   return {
     layerCorrect,
     submittedLayer: t.submitted_layer,
@@ -32,7 +38,9 @@ export function buildFeedback(t: Ticket): FeedbackData {
     rightTools,
     missingTools,
     extraTools,
-    hasIssues: !layerCorrect || missingTools.length > 0 || extraTools.length > 0,
+    pathResult,
+    pathCorrect,
+    hasIssues: !layerCorrect || !pathCorrect || missingTools.length > 0 || extraTools.length > 0,
     modelProblem: t.model_problem,
     modelSolution: t.model_solution,
   };

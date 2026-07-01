@@ -22,7 +22,7 @@ insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, co
 
 (2, 'Ticket #2 – Anderes Netz nicht erreichbar',
  'Die Kollegen direkt neben mir kann ich anpingen, aber an die Server in der anderen Abteilung komme ich nicht heran. Das Internet geht auch nicht.',
- 'Pakete in fremde Netze schickt ein PC an sein Standardgateway (den Router). Fehlt diese Adresse, bleibt nur das eigene Teilnetz erreichbar. Bitte reparieren. Danke!',
+ 'Pakete in fremde Netze schickt ein PC an sein Standardgateway (den Router). Fehlt diese Adresse, bleibt nur das eigene Teilnetz erreichbar.',
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_2',
  'Schicht 3 – Vermittlung',
  array['ipconfig','ping','tracert'],

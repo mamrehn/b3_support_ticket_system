@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTickets } from '../context/TicketsContext';
 import { toolLabel } from '../lib/constants';
-import { formatDate } from '../lib/format';
+import { walkFlow } from '../lib/flowchart';
+import { formatDate, ticketElapsed } from '../lib/format';
 import type { Ticket } from '../lib/types';
 
 function toolsLine(keys: string[] | null | undefined): string {
@@ -88,6 +89,8 @@ function TicketSheet({ ticket }: { ticket: Ticket }) {
     ticket.filius_deeplink && !ticket.filius_deeplink.includes('<')
       ? ticket.filius_deeplink
       : null;
+  const walk = walkFlow(ticket.diagnosis_path);
+  const elapsed = ticketElapsed(ticket.opened_at, ticket.submitted_at);
 
   return (
     <article className="break-inside-avoid rounded-lg border border-gray-300 p-4 print:rounded-none">
@@ -118,6 +121,34 @@ function TicketSheet({ ticket }: { ticket: Ticket }) {
             Diagnose Team {ticket.id}
           </h3>
           <dl className="mt-2 space-y-1.5 text-sm">
+            <Field
+              label="Bearbeitungszeit"
+              value={elapsed ? `${elapsed.label}${elapsed.running ? ' (läuft noch)' : ''}` : null}
+            />
+            <div>
+              <dt className="font-medium text-gray-600">Diagnoseweg (Ablaufdiagramm)</dt>
+              <dd className="text-gray-900">
+                {walk.steps.length === 0 ? (
+                  '—'
+                ) : (
+                  <>
+                    <ol className="mt-0.5 list-decimal space-y-0.5 pl-5">
+                      {walk.steps.map((step) => (
+                        <li key={step.decision.id}>
+                          {step.decision.question}{' '}
+                          <span className="font-medium">→ {step.option.label}</span>
+                        </li>
+                      ))}
+                    </ol>
+                    <p className="mt-0.5">
+                      {walk.result
+                        ? `Endpunkt: ${walk.result.layerLabel} – ${walk.result.action}`
+                        : 'Nicht bis zu einem Endpunkt abgeschlossen.'}
+                    </p>
+                  </>
+                )}
+              </dd>
+            </div>
             <Field label="Schicht" value={ticket.submitted_layer} />
             <Field label="Werkzeuge" value={toolsLine(ticket.submitted_tools)} />
             <Field label="Problem" value={ticket.submitted_problem} />

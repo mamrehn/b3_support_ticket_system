@@ -22,10 +22,16 @@ create table if not exists tickets (
   submitted_problem  text,
   submitted_solution text,
   trace_note         text,                   -- optionaler Wireshark-Trace (Link/Notiz)
+  diagnosis_path     text[] not null default '{}', -- Antwort-Keys des Ablaufdiagramms (src/lib/flowchart.ts)
   revealed           boolean not null default false,
   submitted_by       text,
-  submitted_at       timestamptz
+  submitted_at       timestamptz,
+  opened_at          timestamptz             -- erster Aufruf durch das zuständige Team (Startzeit)
 );
+
+-- Bestehende Installationen: neue Spalten nachziehen (idempotent).
+alter table tickets add column if not exists diagnosis_path text[] not null default '{}';
+alter table tickets add column if not exists opened_at timestamptz;
 
 alter table tickets enable row level security;
 

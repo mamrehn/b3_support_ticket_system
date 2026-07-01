@@ -7,6 +7,7 @@ export interface SubmissionInput {
   submitted_problem: string | null;
   submitted_solution: string | null;
   trace_note: string | null;
+  diagnosis_path: string[];
 }
 
 // Speichert die Einreichung über die serverseitig geprüfte RPC submit_ticket
@@ -27,7 +28,19 @@ export async function saveSubmission(
     p_problem: input.submitted_problem,
     p_solution: input.submitted_solution,
     p_trace: input.trace_note,
+    p_path: input.diagnosis_path ?? [],
     p_reveal: reveal,
+  });
+  if (error) throw new Error(error.message);
+}
+
+// Startet die Bearbeitungszeit: setzt tickets.opened_at beim ERSTEN Aufruf durch
+// das zuständige Team (serverseitig geprüft; Lehrkraft/fremde Teams sind No-ops).
+export async function openTicket(ticketId: number, session: Session): Promise<void> {
+  const { error } = await supabase.rpc('open_ticket', {
+    p_username: session.username,
+    p_password: session.password,
+    p_ticket_id: ticketId,
   });
   if (error) throw new Error(error.message);
 }

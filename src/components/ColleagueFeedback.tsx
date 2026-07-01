@@ -35,11 +35,36 @@ export function ColleagueFeedback({ ticket }: { ticket: Ticket }) {
             {fb.rightTools.length > 0 && (
               <p>{joinDe(fb.rightTools)} habt ihr genau richtig eingesetzt.</p>
             )}
+            {fb.pathCorrect && (
+              <p>
+                Euer Weg durch das Ablaufdiagramm ist sauber dokumentiert und endet genau an der
+                richtigen Stelle (<strong>{fb.pathResult!.layerLabel}</strong>) – so sieht
+                strukturierte Fehlersuche aus.
+              </p>
+            )}
             {!fb.hasIssues && (
               <p>Ehrlich – da gibt es kaum etwas zu meckern: Ihr habt die Störung genau getroffen.</p>
             )}
 
             {/* Ausführlicher, was zu überdenken ist */}
+            {!fb.pathCorrect && (
+              <p>
+                {fb.pathResult ? (
+                  <>
+                    Euer Weg durch das Ablaufdiagramm endet bei{' '}
+                    <em>{fb.pathResult.layerLabel}</em> – da hat euch eine Raute auf die falsche
+                    Spur geschickt. Geht das Diagramm noch einmal Schritt für Schritt durch und
+                    prüft jede Antwort wirklich im laufenden Netz.
+                  </>
+                ) : (
+                  <>
+                    Mir fehlt euer dokumentierter Weg durch das Ablaufdiagramm – arbeitet die
+                    Rauten vom Informationsblatt der Reihe nach ab, dann führt euch das Diagramm
+                    fast von allein zur richtigen Schicht.
+                  </>
+                )}
+              </p>
+            )}
             {!fb.layerCorrect && (
               <p>
                 Eine Sache solltet ihr aber nochmal überdenken: Die betroffene Schicht ist nicht{' '}

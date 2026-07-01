@@ -51,6 +51,12 @@ Weitere Skripte: `npm run build` (Typecheck + Produktivbuild), `npm run preview`
    (durch `schema.sql` bereits gesetzt).
 5. URL und **anon**-Key aus **Project Settings → API** übernehmen.
 
+**Bestehende Installationen aktualisieren:** `schema.sql` und `rpc-auth.sql`
+einfach erneut ausführen (beide sind idempotent). Sie ziehen die Spalten
+`diagnosis_path` (dokumentierter Weg durchs Ablaufdiagramm) und `opened_at`
+(Startzeit der Bearbeitung) nach und ersetzen `submit_ticket` durch die neue
+Signatur inkl. `open_ticket`.
+
 ---
 
 ## Rollen & Schreibschutz (§2 + §10 – serverseitig)
@@ -93,13 +99,20 @@ SPA-Fallback robust. Bei abweichendem Repo-Namen `base` in `vite.config.ts`
 
 - **Login** → **Ticket-Übersicht** (Board) mit Status-Chips
   (`Offen` / `In Bearbeitung` / `Erledigt`); das eigene Ticket ist markiert.
+  Die Spalte **Bearbeitungszeit** zeigt die Zeit vom ersten Öffnen des Tickets
+  durch das Team bis zum letzten Speichern (läuft live mit, solange noch nie
+  gespeichert wurde) – so ist sichtbar, wie schnell ein Ticket gelöst wurde.
 - **Ticket-Detail**: Störungsmeldung des meldenden Kollegen, optionaler Hinweis,
   prominenter Button **„Netzwerk in Echtzeit analysieren"** (der rote Faden zur
-  Lösung), Diagnose-Formular (Schicht, Werkzeuge, Problem, Lösung, optionaler
-  **Wireshark-Trace als Screenshot-Upload**), **Speichern**.
-- **„… weiterleiten"** wird erst aktiv, wenn Schicht + ≥1 Werkzeug + Problem +
-  Lösung gefüllt sind; danach **kommentiert eine erfahrene Kollegin** die
-  Diagnose (Abgleich mit der Musterlösung, bleibt bis Reset).
+  Lösung), Diagnose-Formular mit **geführter Fehlersuche entlang des
+  Ablaufdiagramms** aus `info-sheet-troubleshooting.md` (Raute für Raute
+  beantworten, jeder Schritt wird als Protokoll dokumentiert), Schicht,
+  Werkzeuge, Problem, Lösung, optionaler **Wireshark-Trace als
+  Screenshot-Upload**, **Speichern**.
+- **„… weiterleiten"** wird erst aktiv, wenn das Ablaufdiagramm bis zu einem
+  Endpunkt durchlaufen ist **und** Schicht + ≥1 Werkzeug + Problem + Lösung
+  gefüllt sind; danach **kommentiert eine erfahrene Kollegin** die Diagnose
+  (Abgleich mit der Musterlösung inkl. Diagnoseweg, bleibt bis Reset).
 - **Lehrkraft**: jedes Ticket bearbeiten, **Zurücksetzen** (leert nur die
   Eingaben), **PDF-Export** (Druckansicht → „Als PDF speichern"). Das Board
   läuft per **Realtime** live mit.

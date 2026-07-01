@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { StatusChip } from '../components/StatusChip';
@@ -7,7 +7,7 @@ import { Banner } from '../components/Banner';
 import { useAuth } from '../context/AuthContext';
 import { useTickets } from '../context/TicketsContext';
 import { resetAllSubmissions } from '../lib/api';
-import { formatDateTime } from '../lib/format';
+import { formatDateTime, ticketElapsed } from '../lib/format';
 
 export function Board() {
   const { session } = useAuth();
@@ -18,6 +18,13 @@ export function Board() {
   const [resetOpen, setResetOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  // Laufende Bearbeitungszeiten im Blick behalten: alle 30 s neu rendern.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const handleReset = async () => {
     if (!session) return;
@@ -95,12 +102,14 @@ export function Board() {
                 <th className="px-4 py-3">Titel</th>
                 <th className="px-4 py-3 w-36">Status</th>
                 <th className="px-4 py-3 w-28">Team</th>
+                <th className="px-4 py-3 w-40">Bearbeitungszeit</th>
                 <th className="px-4 py-3 w-52">Zuletzt geändert</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {tickets.map((t) => {
                 const isOwn = session?.ticketId === t.id;
+                const elapsed = ticketElapsed(t.opened_at, t.submitted_at, now);
                 return (
                   <tr
                     key={t.id}
@@ -123,7 +132,25 @@ export function Board() {
                     <td className="px-4 py-3">
                       <StatusChip ticket={t} />
                     </td>
-                    <td className="px-4 py-3 text-gray-600">Team {t.id}</td>
+                    <td className="px-4 py-3">
+                      {elapsed ? (
+                        elapsed.running ? (
+                          <span
+                            className="inline-flex items-center gap-1.5 font-medium text-amber-700"
+                            title="Läuft – noch nicht gespeichert"
+                          >
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" aria-hidden />
+                            {elapsed.label}
+                          </span>
+                        ) : (
+                          <span className="text-gray-600" title="Vom ersten Öffnen bis zum letzten Speichern">
+                            {elapsed.label}
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-gray-500">{formatDateTime(t.submitted_at)}</td>
                   </tr>
                 );

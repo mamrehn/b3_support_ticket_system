@@ -7,12 +7,13 @@ import { useAuth } from '../context/AuthContext';
 import { useTickets } from '../context/TicketsContext';
 import { canEditTicket, type Session } from '../lib/auth';
 import { LAYERS, TOOLS } from '../lib/constants';
-import { saveSubmission } from '../lib/api';
+import { openTicket, saveSubmission } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import { isSubmissionComplete, type Ticket } from '../lib/types';
 import { reporterFor } from '../lib/personas';
 import { Avatar } from '../components/Avatar';
 import { ColleagueFeedback } from '../components/ColleagueFeedback';
+import { DiagnosisFlowchart } from '../components/DiagnosisFlowchart';
 import { TraceField } from '../components/TraceField';
 
 interface FormState {
@@ -21,6 +22,7 @@ interface FormState {
   problem: string;
   solution: string;
   trace: string;
+  path: string[];
 }
 
 function fromTicket(t: Ticket): FormState {
@@ -30,6 +32,7 @@ function fromTicket(t: Ticket): FormState {
     problem: t.submitted_problem ?? '',
     solution: t.submitted_solution ?? '',
     trace: t.trace_note ?? '',
+    path: t.diagnosis_path ?? [],
   };
 }
 
@@ -98,11 +101,24 @@ function TicketDetailView({
     }
   }, [ticket, dirty]);
 
+  // Startzeit setzen: erster Aufruf durch das zuständige Team (README §4.2).
+  // Fehler sind unkritisch (z. B. RPC noch nicht migriert) – nur Zeitmessung.
+  const openRequested = useRef(false);
+  useEffect(() => {
+    if (openRequested.current || ticket.opened_at) return;
+    if (session.role !== 'team' || session.ticketId !== ticket.id) return;
+    openRequested.current = true;
+    openTicket(ticket.id, session)
+      .then(() => refetch())
+      .catch((e) => console.error('open_ticket fehlgeschlagen:', e));
+  }, [ticket.id, ticket.opened_at, session, refetch]);
+
   const complete = isSubmissionComplete({
     submitted_layer: form.layer || null,
     submitted_tools: form.tools,
     submitted_problem: form.problem || null,
     submitted_solution: form.solution || null,
+    diagnosis_path: form.path,
   });
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -130,6 +146,7 @@ function TicketDetailView({
           submitted_problem: form.problem.trim() || null,
           submitted_solution: form.solution.trim() || null,
           trace_note: form.trace.trim() || null,
+          diagnosis_path: form.path,
         },
         session,
         reveal,
@@ -249,6 +266,13 @@ function TicketDetailView({
             </div>
 
             <div className="mt-4 space-y-5">
+              {/* Geführte Fehlersuche entlang des Ablaufdiagramms (Informationsblatt) */}
+              <DiagnosisFlowchart
+                path={form.path}
+                editable={editable}
+                onChange={(p) => update('path', p)}
+              />
+
               {/* Schicht */}
               <div>
                 <label htmlFor="layer" className="block text-sm font-medium text-gray-700">
@@ -372,7 +396,11 @@ function TicketDetailView({
 
                 {!ticket.revealed && (
                   <span
-                    title={complete ? undefined : 'Bitte zuerst alle Felder ausfüllen'}
+                    title={
+                      complete
+                        ? undefined
+                        : 'Bitte zuerst das Ablaufdiagramm bis zu einem Endpunkt durchlaufen und alle Felder ausfüllen'
+                    }
                     className={complete ? undefined : 'cursor-not-allowed'}
                   >
                     <button

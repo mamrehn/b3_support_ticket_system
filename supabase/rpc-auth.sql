@@ -63,6 +63,9 @@ $$;
 
 -- 4) Einreichung speichern / Musterlösung freischalten --------------------
 -- Team: nur das eigene Ticket. Lehrkraft: jedes Ticket.
+-- Alte Signatur (ohne p_path) entfernen, sonst entsteht ein mehrdeutiger Overload.
+drop function if exists submit_ticket(text, text, int, text, text[], text, text, text, boolean);
+
 create or replace function submit_ticket(
   p_username   text,
   p_password   text,
@@ -72,6 +75,7 @@ create or replace function submit_ticket(
   p_problem    text,
   p_solution   text,
   p_trace      text,
+  p_path       text[],
   p_reveal     boolean
 ) returns void
 language plpgsql
@@ -101,10 +105,43 @@ begin
     submitted_problem  = p_problem,
     submitted_solution = p_solution,
     trace_note         = p_trace,
+    diagnosis_path     = coalesce(p_path, '{}'),
     revealed           = revealed or p_reveal,  -- einmal freigeschaltet, bleibt es bis Reset
     submitted_by       = p_username,
-    submitted_at       = now()
+    submitted_at       = now(),
+    opened_at          = coalesce(opened_at, now()) -- Fallback, falls open_ticket nie lief
   where id = p_ticket_id;
+end $$;
+
+-- 4b) Startzeit setzen: erster Aufruf des Tickets durch das zuständige Team.
+-- Nur das Team startet die Uhr; Lehrkraft und fremde Teams lesen nur (kein Fehler).
+create or replace function open_ticket(
+  p_username  text,
+  p_password  text,
+  p_ticket_id int
+) returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_role   text;
+  v_ticket int;
+begin
+  select role, ticket_id into v_role, v_ticket
+  from teams
+  where username = p_username and password = p_password;
+
+  if v_role is null then
+    raise exception 'Anmeldedaten ungültig';
+  end if;
+
+  if v_role <> 'team' or v_ticket is distinct from p_ticket_id then
+    return; -- kein eigenes Ticket -> Uhr nicht starten
+  end if;
+
+  update tickets set opened_at = now()
+  where id = p_ticket_id and opened_at is null; -- nur der ERSTE Aufruf zählt
 end $$;
 
 -- 5) Zurücksetzen (nur Lehrkraft) ----------------------------------------
@@ -131,15 +168,18 @@ begin
     submitted_problem  = null,
     submitted_solution = null,
     trace_note         = null,
+    diagnosis_path     = '{}',
     revealed           = false,
     submitted_by       = null,
-    submitted_at       = null
+    submitted_at       = null,
+    opened_at          = null
   where id >= 1;
 end $$;
 
 -- 6) Ausführungsrechte für die RPCs (Aufruf durch das Frontend) -----------
 grant execute on function app_login(text, text) to anon, authenticated;
-grant execute on function submit_ticket(text, text, int, text, text[], text, text, text, boolean) to anon, authenticated;
+grant execute on function submit_ticket(text, text, int, text, text[], text, text, text, text[], boolean) to anon, authenticated;
+grant execute on function open_ticket(text, text, int) to anon, authenticated;
 grant execute on function reset_tickets(text, text) to anon, authenticated;
 
 -- 7) RLS schärfen: direktes anon-UPDATE verbieten – nur die RPCs schreiben.
