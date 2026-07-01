@@ -24,23 +24,21 @@ export function ColleagueFeedback({ ticket }: { ticket: Ticket }) {
           </p>
 
           <div className="mt-3 space-y-3 text-sm leading-relaxed text-gray-800">
-            <p>Hi zusammen, ich hab mir euer Ticket eben angeschaut – schön dokumentiert! 🙂</p>
+            <p>
+              Hi zusammen, ich hab mir euer Ticket eben angeschaut
+              {fb.faultDocumented ? ' – schön dokumentiert! 🙂' : '.'}
+            </p>
 
             {/* Kurz, was passt */}
-            {fb.layerCorrect && (
+            {fb.faultDocumented && fb.layerCorrect && (
               <p>
-                Die Einordnung in <strong>{fb.correctLayer}</strong> passt – sauber erkannt.
+                Euer Prüfprotokoll sitzt: Schicht für Schicht durchgegangen und den Fehler auf{' '}
+                <strong>{fb.correctLayer}</strong> sauber festgenagelt – genau so sieht
+                strukturierte Fehlersuche aus.
               </p>
             )}
             {fb.rightTools.length > 0 && (
               <p>{joinDe(fb.rightTools)} habt ihr genau richtig eingesetzt.</p>
-            )}
-            {fb.faultDocumented && fb.layerCorrect && (
-              <p>
-                Euer Prüfprotokoll ist sauber: Schicht für Schicht von unten nach oben, bis der
-                Fehler auf <strong>{fb.correctLayer}</strong> sichtbar wurde – genau so sieht
-                strukturierte Fehlersuche aus.
-              </p>
             )}
             {!fb.hasIssues && (
               <p>Ehrlich – da gibt es kaum etwas zu meckern: Ihr habt die Störung genau getroffen.</p>
@@ -54,9 +52,27 @@ export function ColleagueFeedback({ ticket }: { ticket: Ticket }) {
                 richtigen Schicht.
               </p>
             )}
-            {fb.faultDocumented && !fb.layerCorrect && (
+            {fb.stoppedEarly && (
               <p>
-                Eine Sache solltet ihr aber nochmal überdenken: Euer Prüfweg endet auf{' '}
+                Eine Sache solltet ihr nochmal überdenken: Ihr habt schon auf{' '}
+                <em>{fb.submittedLayer}</em> Stopp gemacht – dort war aber noch alles in Ordnung.
+                Prüft die Frage „{fb.faultStepQuestion}" nochmal in Ruhe im laufenden Netz: Sie
+                ist hier mit <strong>Ja</strong> zu beantworten. Der Fehler sitzt weiter oben, auf{' '}
+                <strong>{fb.correctLayer}</strong>.
+              </p>
+            )}
+            {fb.ranPast && (
+              <p>
+                Eine Sache solltet ihr nochmal überdenken: An{' '}
+                <strong>{fb.correctLayer}</strong> seid ihr mit „OK" vorbeigelaufen. Genau bei der
+                Frage „{fb.correctStepQuestion}" hättet ihr genauer hinsehen müssen – die Antwort
+                ist hier <strong>Nein</strong>. Auf {fb.submittedLayer ?? 'der gemeldeten Schicht'}{' '}
+                war dagegen nichts zu finden.
+              </p>
+            )}
+            {fb.faultDocumented && !fb.layerCorrect && !fb.stoppedEarly && !fb.ranPast && (
+              <p>
+                Eine Sache solltet ihr nochmal überdenken: Euer Prüfweg endet auf{' '}
                 {fb.submittedLayer ? <em>{fb.submittedLayer}</em> : 'der falschen Schicht'} – die
                 Störung liegt aber auf <strong>{fb.correctLayer}</strong>. Geht die Schichten noch
                 einmal von Schicht 1 an durch und prüft jede Antwort wirklich im laufenden Netz.
@@ -64,8 +80,15 @@ export function ColleagueFeedback({ ticket }: { ticket: Ticket }) {
             )}
             {fb.missingTools.length > 0 && (
               <p>
-                Im Werkzeugkasten würde ich noch <strong>{joinDe(fb.missingTools)}</strong>{' '}
-                ergänzen – genau damit seht ihr im laufenden Netz, woran es wirklich hängt.
+                Beim Abhaken hätte ich noch{' '}
+                <strong>
+                  {joinDe(
+                    fb.missingTools.map((m) =>
+                      m.layer !== null ? `${m.label} (bei Schicht ${m.layer})` : m.label,
+                    ),
+                  )}
+                </strong>{' '}
+                erwartet – genau damit seht ihr an dieser Stelle, woran es wirklich hängt.
               </p>
             )}
             {fb.extraTools.length > 0 && (

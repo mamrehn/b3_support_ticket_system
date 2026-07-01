@@ -20,12 +20,44 @@ Für die **Fehlersuche** ist das Gold wert: Ein Fehler steckt fast immer in **ei
 > Die Schichten **5 und 6** fasst man in der Praxis meist mit Schicht 7 zur „Anwendung" zusammen.
 
 ## So suchst du systematisch
-Nicht raten – **prüfen**. Der **Ping** ist dein wichtigstes erstes Werkzeug: Mit einem Befehl testet er die Schichten **1 bis 3** auf einmal.
+**Grundregel:** Gehe die Schichten **von unten (1) nach oben (7)** durch. Prüfe eine Schicht – ist sie in Ordnung, steige eine höher; ist sie es nicht, hast du den Fehler gefunden. Da jede Schicht auf der darunter aufbaut, gilt: Funktioniert Schicht N, sind die Schichten 1 bis N in Ordnung.
+*Nach jeder Behebung von der betroffenen Schicht aus erneut prüfen.*
 
-> **Merksatz:** Klappt der Ping zu einer IP-Adresse, arbeiten die unteren Schichten (1–3) für *diesen Weg* gerade – viele Ursachen sind damit ausgeschlossen.
-> *Achtung:* nur „für diesen Weg, in diesem Moment" – sporadische Aussetzer kann ein erfolgreicher Ping nicht ausschließen.
+### ① Standard-Weg – Schicht für Schicht (1 → 7)
 
-Arbeite dann nach dem Ablaufdiagramm. **Jede Raute nennt die zu prüfende Schicht und das passende Werkzeug; jeder Endpunkt nennt Schicht und Maßnahme.**
+```mermaid
+%%{init: {"flowchart": {"nodeSpacing": 30, "rankSpacing": 35, "diagramPadding": 4, "padding": 8}} }%%
+flowchart TD
+  A(["Fehler gemeldet"]) --> S1{"Schicht 1 OK?<br/>Link / LED vorhanden? (Verbindungsansicht)"}
+  S1 -- "Nein" --> F1["Schicht 1 – Bitübertragung<br/>Kabel / Port / Strom prüfen, neu verbinden"]
+  S1 -- "Ja" --> S2{"Schicht 2 OK?<br/>Frames kommen an und FCS fehlerfrei? (Wireshark)"}
+  S2 -- "Nein" --> F2["Schicht 2 – Sicherung<br/>defektes Kabel tauschen (FCS-Fehler)"]
+  S2 -- "Ja" --> S3{"Schicht 3 OK?<br/>Andere Geräte per IP erreichbar? (ipconfig, ping)"}
+  S3 -- "Nein" --> F3["Schicht 3 – Vermittlung<br/>Eigene IP/Maske korrekt? Standardgateway gesetzt?"]
+  S3 -- "Ja" --> S4{"Schicht 4 OK?<br/>Dienst-Port am Server erreichbar, nicht blockiert? (Firewall)"}
+  S4 -- "Nein" --> F4["Schicht 4 – Transport<br/>Firewall-Port für den Dienst freigeben"]
+  S4 -- "Ja" --> S7{"Schicht 7 OK?<br/>Name löst auf und Dienst antwortet? (nslookup, Browser)"}
+  S7 -- "Nein" --> F7["Schicht 7 – Anwendung<br/>DNS-Eintrag korrigieren / Dienst starten"]
+  S7 -- "Ja" --> OK(["Alles OK – Fehler woanders suchen"])
+
+  classDef low fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e;
+  classDef mid fill:#ede9fe,stroke:#6d28d9,color:#4c1d95;
+  classDef app fill:#ffedd5,stroke:#c2410c,color:#7c2d12;
+  classDef neu fill:#f1f5f9,stroke:#64748b,color:#334155;
+  class S1,S2,F1,F2 low
+  class S3,F3 mid
+  class S4,S7,F4,F7 app
+  class A,OK neu
+```
+
+*Farben: blau = Netzzugang (Schicht 1/2), violett = Internet (3), orange = Transport/Anwendung (4/7).*
+
+### ② Bonus für Schnelle – der „Ping-Sprung"
+Profis sparen Schritte. Der **Ping** testet die Schichten **1–3 mit einem einzigen Befehl**: Klappt er, kann man die unteren drei Schichten überspringen und sofort weiter oben suchen; klappt er nicht, grenzt man von dort nach unten ein.
+
+> **Merksatz:** Klappt der Ping zu einer IP-Adresse, arbeiten die Schichten 1–3 für *diesen Weg* gerade. *Achtung:* nur „in diesem Moment" – sporadische Aussetzer schließt ein erfolgreicher Ping nicht aus.
+
+Schneller, aber schwerer zu lesen:
 
 ```mermaid
 %%{init: {"flowchart": {"nodeSpacing": 30, "rankSpacing": 35, "diagramPadding": 4, "padding": 8}} }%%
@@ -59,4 +91,4 @@ flowchart TD
   class D,E,L7a,L74 app
 ```
 
-*Graue Rauten = breiter Ping-Test (Schicht 1–3). Farbige Elemente = eine bestimmte Schicht: blau = Netzzugang (1/2), violett = Internet (3), orange = Anwendung (4/7).*
+*Graue Rauten = breiter Ping-Test (Schicht 1–3); farbige Elemente = eine bestimmte Schicht.*
