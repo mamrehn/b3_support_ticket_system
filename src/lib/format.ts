@@ -33,6 +33,22 @@ export function formatDuration(ms: number): string {
   return h > 0 ? `${h} h ${String(m).padStart(2, '0')} min` : `${m} min`;
 }
 
+// Für PDF-Dateinamen (Browser verwenden document.title beim „Als PDF
+// speichern"): Umlaute umschreiben, alles andere auf A-Za-z0-9 und "-" eindampfen.
+export function sanitizeForFilename(s: string): string {
+  return s
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/Ä/g, 'Ae')
+    .replace(/Ö/g, 'Oe')
+    .replace(/Ü/g, 'Ue')
+    .replace(/ß/g, 'ss')
+    .replace(/[^A-Za-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
 // Relative Zeitangabe für den Kollegin-Kommentar: "gerade eben" / "vor 12 min".
 export function formatRelativeTime(
   value: string | null | undefined,

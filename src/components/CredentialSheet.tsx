@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import type { ClassSet } from '../lib/api';
+import { sanitizeForFilename } from '../lib/format';
 
 // Druckbare Zugangszettel eines Klassen-Sets: 4 Zettel je DIN-A4-Seite,
 // jeder mit großer farbiger Teamnummer, QR-Code, (Kurz-)Link, Benutzername
@@ -39,22 +40,6 @@ function loadShortLink(classCode: string): string {
   } catch {
     return '';
   }
-}
-
-// Für den PDF-Dateinamen (Browser verwenden document.title beim „Als PDF
-// speichern"): Umlaute umschreiben, alles andere auf A-Za-z0-9 und "-" eindampfen.
-function sanitizeForFilename(s: string): string {
-  return s
-    .replace(/ä/g, 'ae')
-    .replace(/ö/g, 'oe')
-    .replace(/ü/g, 'ue')
-    .replace(/Ä/g, 'Ae')
-    .replace(/Ö/g, 'Oe')
-    .replace(/Ü/g, 'Ue')
-    .replace(/ß/g, 'ss')
-    .replace(/[^A-Za-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 60);
 }
 
 function useQrDataUrl(text: string): string | null {

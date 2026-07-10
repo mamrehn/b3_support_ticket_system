@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useTickets } from '../context/TicketsContext';
 import { toolLabel } from '../lib/constants';
 import { parseFlow } from '../lib/flowchart';
-import { formatDate, ticketElapsed } from '../lib/format';
+import { formatDate, sanitizeForFilename, ticketElapsed } from '../lib/format';
 import type { Ticket } from '../lib/types';
 
 function toolsLine(keys: string[] | null | undefined): string {
@@ -12,9 +13,25 @@ function toolsLine(keys: string[] | null | undefined): string {
 }
 
 export function PrintView() {
+  const { session } = useAuth();
   const { tickets, loading, error } = useTickets();
-  const [klasse, setKlasse] = useState('');
+  // Klassenname: mit der optionalen Bezeichnung des Klassen-Sets vorbefüllt.
+  const [klasse, setKlasse] = useState(() => session?.classLabel ?? '');
   const [datum, setDatum] = useState(formatDate());
+
+  // PDF-Dateiname wie bei den Zugangszetteln (Browser nutzen document.title):
+  // "DataSol-Lernblatt-<Code>[-<Klassenname>]" – folgt dem Eingabefeld live.
+  useEffect(() => {
+    const prev = document.title;
+    const parts = ['DataSol-Lernblatt'];
+    if (session?.classCode) parts.push(session.classCode);
+    const label = sanitizeForFilename(klasse);
+    if (label) parts.push(label);
+    document.title = parts.join('-');
+    return () => {
+      document.title = prev;
+    };
+  }, [klasse, session?.classCode]);
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
