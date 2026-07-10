@@ -41,6 +41,22 @@ function loadShortLink(classCode: string): string {
   }
 }
 
+// Für den PDF-Dateinamen (Browser verwenden document.title beim „Als PDF
+// speichern"): Umlaute umschreiben, alles andere auf A-Za-z0-9 und "-" eindampfen.
+function sanitizeForFilename(s: string): string {
+  return s
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/Ä/g, 'Ae')
+    .replace(/Ö/g, 'Oe')
+    .replace(/Ü/g, 'Ue')
+    .replace(/ß/g, 'ss')
+    .replace(/[^A-Za-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
 function useQrDataUrl(text: string): string | null {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
@@ -64,6 +80,22 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
   const qr = useQrDataUrl(loginUrl);
   const [copied, setCopied] = useState(false);
   const [shortLink, setShortLink] = useState(() => loadShortLink(classSet.classCode));
+  // Spickschutz: Zettel ohne Link & QR-Code drucken – Teams/Passwörter lassen
+  // sich so schon vorab austeilen, ohne die Adresse zu verraten.
+  const [noLinks, setNoLinks] = useState(false);
+
+  // PDF-Dateiname beim Drucken: "DataSol-Zugangszettel-<Code>[-<Name>][-ohne-Link]".
+  useEffect(() => {
+    const prev = document.title;
+    const parts = ['DataSol-Zugangszettel', classSet.classCode];
+    const label = sanitizeForFilename(classSet.classLabel ?? '');
+    if (label) parts.push(label);
+    if (noLinks) parts.push('ohne-Link');
+    document.title = parts.join('-');
+    return () => {
+      document.title = prev;
+    };
+  }, [classSet.classCode, classSet.classLabel, noLinks]);
 
   const updateShortLink = (value: string) => {
     setShortLink(value);
@@ -151,6 +183,26 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
             kurzelinks.de) auf den obigen Login-Link zeigen lassen – auf den Zetteln erscheint
             dann der Kurzlink statt der langen Adresse. Der QR-Code führt immer direkt zum Login.
           </p>
+
+          <label className="mt-4 flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={noLinks}
+              onChange={(e) => setNoLinks(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-accent-600 focus:ring-accent-600"
+            />
+            <span className="text-sm">
+              <span className="font-medium text-gray-800">
+                Version ohne Link &amp; QR-Code (Spickschutz)
+              </span>
+              <span className="block text-xs leading-relaxed text-gray-500">
+                Zettel enthalten nur Teamnummer, Benutzername, Passwort und Klassen-Code –
+                so lassen sich Einteilung und Passwörter schon vorab austeilen, ohne die
+                Adresse zu verraten. Den Link zeigen Sie später (Tafel/Beamer) oder drucken
+                die Voll-Version.
+              </span>
+            </span>
+          </label>
         </div>
       </div>
 
@@ -191,7 +243,7 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
                     {isTeacher ? 'DataSol IT-Support' : `DataSol IT-Support · Ticket #${c.ticketId}`}
                   </span>
                 </div>
-                {qr && (
+                {qr && !noLinks && (
                   <img
                     src={qr}
                     alt=""
@@ -203,10 +255,12 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
 
               <div className="mt-4 space-y-1.5 text-sm print:mt-6 print:text-base">
                 {/* Link in voller Kartenbreite – so passt der Kurzlink in eine Zeile */}
-                <p className="break-all">
-                  <span className="text-gray-500">Link: </span>
-                  <span className="font-mono font-semibold text-gray-900">{slipLink}</span>
-                </p>
+                {!noLinks && (
+                  <p className="break-all">
+                    <span className="text-gray-500">Link: </span>
+                    <span className="font-mono font-semibold text-gray-900">{slipLink}</span>
+                  </p>
+                )}
                 <dl className="space-y-1.5">
                   <div className="flex gap-2">
                     <dt className="w-28 shrink-0 text-gray-500">Benutzername:</dt>
@@ -222,11 +276,21 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
                 </dl>
               </div>
 
-              {/* Sicherheitsnetz, falls Link/QR nicht genutzt werden können:
-                  der Klassen-Code lässt sich auch von Hand eintippen. */}
+              {/* Sicherheitsnetz bzw. (ohne Link) Hinweis auf den Klassen-Code. */}
               <p className="mt-auto pt-3 text-[10px] text-gray-400">
-                Falls der Link nicht klappt: Seite öffnen und Klassen-Code{' '}
-                <span className="font-mono font-semibold">{classSet.classCode}</span> eingeben.
+                {noLinks ? (
+                  <>
+                    Klassen-Code:{' '}
+                    <span className="font-mono font-semibold">{classSet.classCode}</span> – die
+                    Adresse gibt die Lehrkraft bekannt.
+                  </>
+                ) : (
+                  <>
+                    Falls der Link nicht klappt: Seite öffnen und Klassen-Code{' '}
+                    <span className="font-mono font-semibold">{classSet.classCode}</span>{' '}
+                    eingeben.
+                  </>
+                )}
               </p>
             </li>
           );
