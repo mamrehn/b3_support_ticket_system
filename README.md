@@ -20,7 +20,7 @@ Zugangszettel (4 je DIN-A4-Seite: große farbige Teamnummer, QR-Code,
 Link/Kurzlink, Benutzername, Passwort; ein optionaler Kurzlink lässt sich vor
 dem Druck eintragen) – und sind für die Lehrkraft jederzeit erneut abrufbar
 (Board → „Zugangsdaten & QR-Code"). Klassen-Sets ohne Aktivität werden nach
-**60 Tagen** automatisch gelöscht (pg_cron).
+**100 Tagen** automatisch gelöscht (pg_cron).
 
 Stack: **Vite + React + TypeScript + Tailwind CSS**, Backend ausschließlich
 **Supabase** (Postgres + Realtime), statisches Deployment auf **GitHub Pages**.
@@ -170,6 +170,6 @@ SPA-Fallback robust. Bei abweichendem Repo-Namen `base` in `vite.config.ts`
   Einreichungsspalten der eigenen Klasse.
 
 Vorlagen-Änderungen wirken nur auf **neu** erstellte Klassen-Sets. Ein
-nächtlicher pg_cron-Job löscht Klassen ohne Aktivität seit 60 Tagen (Kaskade
+nächtlicher pg_cron-Job löscht Klassen ohne Aktivität seit 100 Tagen (Kaskade
 entfernt Konten + Tickets inkl. Screenshots). Details siehe
 `supabase/schema.sql` und `supabase/rpc-auth.sql`.

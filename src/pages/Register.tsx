@@ -63,7 +63,7 @@ export function Register() {
                 alle Tickets live verfolgen, zurücksetzen und als PDF exportieren.
               </li>
               <li>
-                Klassen-Sets ohne Aktivität werden nach <strong>60 Tagen</strong>{' '}
+                Klassen-Sets ohne Aktivität werden nach <strong>100 Tagen</strong>{' '}
                 automatisch gelöscht.
               </li>
             </ul>

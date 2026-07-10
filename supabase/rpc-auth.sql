@@ -298,11 +298,11 @@ grant execute on function open_ticket(uuid, text, text, int) to anon, authentica
 grant execute on function reset_tickets(uuid, text, text) to anon, authenticated;
 grant execute on function list_credentials(uuid, text, text) to anon, authenticated;
 
--- 7) Aufräumjob: Klassen ohne Aktivität seit 60 Tagen löschen --------------
+-- 7) Aufräumjob: Klassen ohne Aktivität seit 100 Tagen löschen -------------
 -- (per ON DELETE CASCADE verschwinden auch Konten + Tickets inkl. der teuren
 -- Screenshot-Spalten). Läuft nachts um 3:15 UTC. Falls pg_cron im Projekt
 -- nicht verfügbar ist, wird nur ein Hinweis ausgegeben – dann gelegentlich
--- von Hand löschen:  delete from classes where last_activity < now() - interval '60 days';
+-- von Hand löschen:  delete from classes where last_activity < now() - interval '100 days';
 do $$
 begin
   begin
@@ -319,7 +319,7 @@ begin
     perform cron.schedule(
       'datasol-cleanup-classes',
       '15 3 * * *',
-      $job$ delete from public.classes where last_activity < now() - interval '60 days' $job$
+      $job$ delete from public.classes where last_activity < now() - interval '100 days' $job$
     );
   exception when others then
     raise notice 'Aufräumjob konnte nicht eingerichtet werden (%) – bei Bedarf von Hand löschen.', sqlerrm;
