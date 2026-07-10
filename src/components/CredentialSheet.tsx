@@ -89,6 +89,12 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
 
   return (
     <div>
+      {/* Beim Druck der Zettel: randlose Seite – die Schnittlinien (ein Kreuz
+          je A4-Blatt) übernehmen die Aufteilung, maximale Breite für den Link.
+          Gilt nur, solange diese Komponente gemountet ist (Register /
+          Credentials); das Lernblatt (PrintView) behält seinen Seitenrand. */}
+      <style>{'@media print { @page { margin: 0; } }'}</style>
+
       {/* Kopf: Klassen-Code + Link + Kurzlink-Feld – NUR Bildschirm */}
       <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm print:hidden">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -96,7 +102,7 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
               Klassen-Code
             </p>
-            <p className="mt-1 font-mono text-4xl font-bold tracking-[0.3em] text-gray-900">
+            <p className="mt-1 font-mono text-4xl font-bold tracking-widest text-gray-900">
               {classSet.classCode}
             </p>
             {classSet.classLabel && (
@@ -148,20 +154,23 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
         </div>
       </div>
 
-      {/* Zettel: 4 je DIN-A4-Seite (2 × 2), gestrichelte Ränder = Schnittlinien */}
+      {/* Zettel: 4 je DIN-A4-Seite (2 × 2). Im Druck randlos und ohne
+          Einzelrahmen – nur ein Schnittkreuz pro Blatt: die linke Spalte
+          zeichnet die senkrechte, die obere Reihe die waagerechte Linie. */}
       <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-gray-500 print:hidden">
-        Zugangszettel – 4 je A4-Seite, ausschneiden und an die Teams verteilen
+        Zugangszettel – 4 je A4-Seite, am Kreuz auseinanderschneiden
       </p>
-      <ul className="mt-2 grid gap-3 sm:grid-cols-2 print:mt-0 print:grid-cols-2 print:gap-x-4 print:gap-y-3">
-        {classSet.credentials.map((c) => {
+      <ul className="mt-2 grid gap-3 sm:grid-cols-2 print:mt-0 print:grid-cols-2 print:gap-0">
+        {classSet.credentials.map((c, i) => {
           const isTeacher = c.role === 'teacher';
           const color = isTeacher
             ? 'text-gray-800'
             : (TEAM_COLORS[c.ticketId ?? 0] ?? 'text-gray-800');
+          const cutLines = `${i % 2 === 0 ? 'print:border-r ' : ''}${i % 4 < 2 ? 'print:border-b' : ''}`;
           return (
             <li
               key={c.username}
-              className="flex break-inside-avoid flex-col rounded-lg border-2 border-dashed border-gray-400 bg-white p-4 print:h-[12.4cm] print:rounded-none print:p-5"
+              className={`flex break-inside-avoid flex-col rounded-lg border-2 border-dashed border-gray-400 bg-white p-4 print:h-[14.7cm] print:rounded-none print:border-0 print:p-6 ${cutLines}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -188,22 +197,26 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
                 )}
               </div>
 
-              <dl className="mt-4 space-y-1.5 text-sm print:mt-6 print:text-base">
-                <div className="flex gap-2">
-                  <dt className="w-32 shrink-0 text-gray-500">Link:</dt>
-                  <dd className="break-all font-mono font-semibold text-gray-900">{slipLink}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="w-32 shrink-0 text-gray-500">Benutzername:</dt>
-                  <dd className="font-mono text-lg font-bold text-gray-900">{c.username}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="w-32 shrink-0 text-gray-500">Passwort:</dt>
-                  <dd className="font-mono text-lg font-bold tracking-[0.3em] text-gray-900">
-                    {c.password}
-                  </dd>
-                </div>
-              </dl>
+              <div className="mt-4 space-y-1.5 text-sm print:mt-6 print:text-base">
+                {/* Link in voller Kartenbreite – so passt der Kurzlink in eine Zeile */}
+                <p className="break-all">
+                  <span className="text-gray-500">Link: </span>
+                  <span className="font-mono font-semibold text-gray-900">{slipLink}</span>
+                </p>
+                <dl className="space-y-1.5">
+                  <div className="flex gap-2">
+                    <dt className="w-28 shrink-0 text-gray-500">Benutzername:</dt>
+                    <dd className="font-mono text-lg font-bold text-gray-900">{c.username}</dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="w-28 shrink-0 text-gray-500">Passwort:</dt>
+                    {/* dezente Sperrung – 0.3em sah nach Leerzeichen aus */}
+                    <dd className="font-mono text-lg font-bold tracking-wide text-gray-900">
+                      {c.password}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
 
               {/* Sicherheitsnetz, falls Link/QR nicht genutzt werden können:
                   der Klassen-Code lässt sich auch von Hand eintippen. */}
