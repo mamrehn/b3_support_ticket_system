@@ -174,10 +174,12 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  {/* Groß genug, um das eigene Team quer durchs Klassenzimmer
-                      zu erkennen: gedruckt ~5,5 cm hoch. */}
+                  {/* Quer durchs Klassenzimmer erkennbar: 7 cm Schriftgrad,
+                      als Inline-Stil in cm – wirkt identisch am Bildschirm
+                      (≈ 264 px) und auf Papier, ohne Umweg über Utility-Klassen. */}
                   <span
-                    className={`block text-9xl font-black leading-none ${color} print:text-[5.5cm]`}
+                    className={`block font-black leading-none ${color}`}
+                    style={{ fontSize: '7cm' }}
                     aria-hidden
                   >
                     {isTeacher ? 'L' : c.ticketId}
