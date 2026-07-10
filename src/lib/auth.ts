@@ -1,17 +1,22 @@
-// Anmeldung & Schreibschutz (README §2 + §10).
+// Anmeldung & Schreibschutz (Mehrklassen-Version).
 //
-// Die Anmeldung wird SERVERSEITIG geprüft: app_login() vergleicht
-// Benutzername+Passwort gegen die teams-Tabelle. Passwörter liegen in der DB,
-// NICHT im öffentlichen Bundle. Schreibzugriffe laufen über die RPCs
-// submit_ticket()/reset_tickets() (siehe src/lib/api.ts), die das Passwort
-// erneut serverseitig prüfen – daher wird das eigene Passwort in der Session
-// gehalten (nur clientseitig, im sessionStorage dieses Geräts).
+// Jede Lehrkraft hat ihr eigenes Klassen-Set (Klassen-Code + 8 Konten), das
+// sie sich über die Seite „Klassen-Set erstellen" selbst anlegt. Die Anmeldung
+// wird SERVERSEITIG geprüft: app_login() vergleicht Klassen-Code + Benutzer-
+// name + Passwort gegen die Tabellen classes/teams. Passwörter liegen in der
+// DB, NICHT im öffentlichen Bundle. Schreibzugriffe laufen über die RPCs in
+// src/lib/api.ts, die class_id + Benutzername + Passwort erneut serverseitig
+// prüfen – daher hält die Session das eigene Passwort (nur clientseitig, im
+// sessionStorage dieses Geräts/Tabs).
 
 import { supabase } from './supabase';
 
 export type Role = 'team' | 'teacher';
 
 export interface Session {
+  classId: string; // uuid der Klasse – scoped alle Lese-/Schreibzugriffe
+  classCode: string; // Klassen-Code für Anzeige (z. B. "QKZP")
+  classLabel: string | null; // optionale Bezeichnung, z. B. "Klasse 8b"
   username: string;
   role: Role;
   ticketId?: number; // nur für Teams: das eigene Ticket
@@ -19,6 +24,9 @@ export interface Session {
 }
 
 interface LoginRow {
+  class_id: string;
+  class_code: string;
+  class_label: string | null;
   username: string;
   role: Role;
   ticket_id: number | null;
@@ -35,13 +43,16 @@ export type LoginResult =
 
 // Serverseitige Prüfung der Anmeldedaten.
 export async function authenticate(
+  classCode: string,
   username: string,
   password: string,
 ): Promise<LoginResult> {
+  const code = classCode.trim();
   const u = username.trim();
-  if (!u || !password) return { ok: false, reason: 'invalid' };
+  if (!code || !u || !password.trim()) return { ok: false, reason: 'invalid' };
 
   const { data, error } = await supabase.rpc('app_login', {
+    p_class_code: code,
     p_username: u,
     p_password: password,
   });
@@ -57,6 +68,9 @@ export async function authenticate(
   return {
     ok: true,
     session: {
+      classId: row.class_id,
+      classCode: row.class_code,
+      classLabel: row.class_label,
       username: row.username ?? u,
       role: row.role ?? 'team',
       ticketId: row.ticket_id ?? undefined,
@@ -68,7 +82,11 @@ export async function authenticate(
 export function loadSession(): Session | null {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Session) : null;
+    if (!raw) return null;
+    const s = JSON.parse(raw) as Session;
+    // Sessions aus der Einzelklassen-Version (ohne classId) verwerfen.
+    if (!s.classId || !s.username || !s.password) return null;
+    return s;
   } catch {
     return null;
   }
@@ -82,7 +100,7 @@ export function clearSession(): void {
   sessionStorage.removeItem(STORAGE_KEY);
 }
 
-// Darf diese Session das gegebene Ticket bearbeiten?
+// Darf diese Session das gegebene Ticket (der eigenen Klasse) bearbeiten?
 // Lehrer: jedes Ticket. Team: nur das eigene. (Serverseitig zusätzlich erzwungen.)
 export function canEditTicket(session: Session | null, ticketId: number): boolean {
   if (!session) return false;

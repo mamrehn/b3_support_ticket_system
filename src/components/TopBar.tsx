@@ -35,6 +35,12 @@ export function TopBar() {
               Angemeldet als{' '}
               <span className="font-medium text-gray-800">{displayName(session)}</span>
             </span>
+            <span
+              title={session.classLabel ?? undefined}
+              className="rounded-md bg-gray-100 px-2 py-1 font-mono text-xs font-semibold tracking-widest text-gray-600"
+            >
+              {session.classCode}
+            </span>
             <button
               type="button"
               onClick={handleLogout}

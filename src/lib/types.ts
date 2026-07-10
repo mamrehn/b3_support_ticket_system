@@ -2,7 +2,8 @@ import { parseFlow } from './flowchart';
 
 // Eine Zeile der Tabelle `tickets` (siehe supabase/schema.sql).
 export interface Ticket {
-  id: number;
+  class_id: string; // Klasse, zu der das Ticket gehört (uuid)
+  id: number; // Ticketnummer 1..7 innerhalb der Klasse
   title: string;
   reporter_text: string;
   concept_hint: string | null;

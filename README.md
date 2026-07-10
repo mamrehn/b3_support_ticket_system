@@ -1,10 +1,26 @@
 # DataSol IT-Support
 
 Ein kleines Klassenraum-Ticketsystem für eine Netzwerk-Unterrichtsstunde.
-Schülerteams (1–6) diagnostizieren je eine Netzwerkstörung in einem **externen
+Schülerteams (1–7) diagnostizieren je eine Netzwerkstörung in einem **externen
 Filius-Simulator** (per Deeplink) und tragen ihre Befunde hier ein. Ein
-**Lehrer-Konto** sieht alle Tickets live, setzt das System zwischen den Klassen
-zurück und exportiert ein kombiniertes PDF-Lernblatt.
+**Lehrer-Konto** sieht alle Tickets live, setzt das System zurück und
+exportiert ein kombiniertes PDF-Lernblatt.
+
+**Mehrklassen-Betrieb:** Jede Lehrkraft erstellt sich über die Seite
+**„Klassen-Set erstellen"** (`#/register`) ihr eigenes unabhängiges Set.
+Diese URL ist **bewusst nirgends in der App verlinkt** – sie wird nur als
+Einladungslink unter Lehrkräften geteilt (z. B. im Lehrer-Chat), damit
+Schüler:innen nicht auf die Idee kommen, sich selbst Klassen anzulegen.
+Ein Set besteht aus einem **Klassen-Code**, einem
+Lehrkraft-Konto und **user1 … user7** mit generierten Passwörtern (eindeutig
+unterscheidbare Großbuchstaben ohne I/O; Teams: 4 Zeichen, Lehrkraft:
+6 Zeichen) sowie einem frischen Satz der 7 Tickets. Beliebig viele Klassen laufen gleichzeitig und unabhängig; kein
+manuelles SQL pro Lehrkraft. Die Zugangsdaten erscheinen als druckbare
+Zugangszettel (4 je DIN-A4-Seite: große farbige Teamnummer, QR-Code,
+Link/Kurzlink, Benutzername, Passwort; ein optionaler Kurzlink lässt sich vor
+dem Druck eintragen) – und sind für die Lehrkraft jederzeit erneut abrufbar
+(Board → „Zugangsdaten & QR-Code"). Klassen-Sets ohne Aktivität werden nach
+**60 Tagen** automatisch gelöscht (pg_cron).
 
 Stack: **Vite + React + TypeScript + Tailwind CSS**, Backend ausschließlich
 **Supabase** (Postgres + Realtime), statisches Deployment auf **GitHub Pages**.
@@ -17,9 +33,11 @@ Stack: **Vite + React + TypeScript + Tailwind CSS**, Backend ausschließlich
 | --- | --- | --- |
 | Supabase URL + anon-Key | `.env` (lokal) / GitHub-Secrets (Build) | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
 | Filius-Deeplink-Schema | `supabase/seed.sql` | `https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_<id>` (`<id>` = Ticket-ID) |
-| Passwörter (Teams + Lehrkraft) | DB-Tabelle `teams` (siehe `supabase/rpc-auth.sql`) | echte Passwörter eintragen und auf Papier drucken |
 | Repo-Name (Pages-Basispfad) | `vite.config.ts` (`base`) | aktuell `/b3_support_ticket_system/` |
 | Ticket-Texte 2/3/5/6 | `supabase/seed.sql` | bei Bedarf durch echte Paket-Texte ersetzen |
+
+Passwörter werden **nicht mehr manuell gepflegt** – sie entstehen pro
+Klassen-Set automatisch über die Seite „Klassen-Set erstellen".
 
 ---
 
@@ -42,43 +60,55 @@ Weitere Skripte: `npm run build` (Typecheck + Produktivbuild), `npm run preview`
 
 1. Projekt auf [supabase.com](https://supabase.com) anlegen.
 2. Im **SQL Editor** nacheinander ausführen:
-   - `supabase/schema.sql` – Tabelle, RLS-Policies, Realtime.
+   - `supabase/schema.sql` – Tabellen (`ticket_templates`, `classes`, `teams`,
+     `tickets`), RLS-Policies, Realtime.
    - `supabase/seed.sql` – die Ticket-Vorlagen (re-runnable).
-   - `supabase/rpc-auth.sql` – serverseitige Auth + Schreibschutz (siehe §2).
-3. In `rpc-auth.sql` den auskommentierten `insert into teams …` mit den echten
-   Passwörtern befüllen – **inkl. der `teacher`-Zeile** – und ausführen.
-4. **Database → Replication / Realtime**: prüfen, dass `tickets` aktiv ist
+   - `supabase/rpc-auth.sql` – `create_class` + serverseitige Auth +
+     Schreibschutz + Aufräumjob.
+3. **Database → Replication / Realtime**: prüfen, dass `tickets` aktiv ist
    (durch `schema.sql` bereits gesetzt).
-5. URL und **anon**-Key aus **Project Settings → API** übernehmen.
+4. URL und **anon**-Key aus **Project Settings → API** übernehmen.
 
-**Bestehende Installationen aktualisieren:** `schema.sql`, `seed.sql` und
-`rpc-auth.sql` einfach erneut ausführen (alle sind idempotent). Sie ziehen die
-Spalten `diagnosis_path` (dokumentierter Weg durchs Ablaufdiagramm) und
-`opened_at` (Startzeit der Bearbeitung) nach, aktualisieren die
-`correct_tools` der Vorlagen und ersetzen `submit_ticket` durch die neue
-Signatur inkl. `open_ticket`.
+Konten werden **nicht** mehr per SQL angelegt – jede Lehrkraft erstellt ihr
+Klassen-Set selbst über `#/register`.
+
+**Migration von der Einzelklassen-Version:** einfach alle drei Dateien erneut
+ausführen. `schema.sql` erkennt die alten Tabellen (ohne `class_id`) und
+ersetzt sie – **alte Zugangsdaten und laufende Eingaben gehen dabei bewusst
+verloren.** Danach ein frisches Klassen-Set über die App erstellen. Ein
+erneutes Ausführen später lässt bestehende Klassen unangetastet (idempotent).
 
 ---
 
-## Rollen & Schreibschutz (§2 + §10 – serverseitig)
+## Rollen & Schreibschutz (serverseitig)
 
 Die Anmeldung wird **serverseitig** geprüft: die RPC `app_login` vergleicht
-Benutzername+Passwort gegen die DB-Tabelle `teams` (RLS gesperrt, niemand liest
-die Passwörter). **Passwörter liegen NICHT im Bundle.** Die Session liegt im
-`sessionStorage` (refresh-fest) und hält das eigene Passwort nur clientseitig,
-damit es den Schreib-RPCs mitgegeben werden kann.
+**Klassen-Code + Benutzername + Passwort** gegen die Tabellen `classes`/`teams`
+(RLS gesperrt, niemand liest Passwörter oder fremde Codes). Klassen-Code und
+Passwort werden dabei unabhängig von Groß-/Kleinschreibung verglichen (beide
+bestehen nur aus Großbuchstaben – spart Support, kostet keine Sicherheit).
+**Passwörter liegen NICHT im Bundle.** Die Session liegt im `sessionStorage`
+(refresh-fest, pro Tab) und hält das eigene Passwort nur clientseitig, damit es
+den Schreib-RPCs mitgegeben werden kann.
 
-- Jeder angemeldete Nutzer **liest alle** Tickets (offene SELECT-Policy → auch Realtime).
-- Schreiben läuft ausschließlich über `submit_ticket` / `reset_tickets`
-  (SECURITY DEFINER). Direktes anon-`UPDATE` ist per RLS unterbunden.
-- Ein **Team** schreibt **nur sein eigenes** Ticket (Zuordnung über
-  `teams.ticket_id`, z. B. `user1`→#1 … `user7`→#7) – serverseitig erzwungen.
-  Die **Lehrkraft** (`teacher`) schreibt jedes Ticket, darf zurücksetzen und
-  sieht die Admin-Aktionen.
+- Das Frontend lädt und abonniert nur die Tickets der **eigenen Klasse**
+  (`class_id`-Filter, auch im Realtime-Kanal).
+- Schreiben läuft ausschließlich über `submit_ticket` / `open_ticket` /
+  `reset_tickets` (SECURITY DEFINER, je Klasse). Direktes anon-`UPDATE` ist
+  per RLS unterbunden.
+- Ein **Team** schreibt **nur sein eigenes** Ticket der eigenen Klasse
+  (`user1`→#1 … `user7`→#7) – serverseitig erzwungen. Die **Lehrkraft**
+  schreibt jedes Ticket ihrer Klasse, darf zurücksetzen, die Zugangsdaten
+  erneut abrufen (`list_credentials`) und sieht die Admin-Aktionen.
+- `create_class` ist öffentlich aufrufbar (das ist der Zweck des geteilten
+  Links), aber ratenbegrenzt (max. 20 neue Klassen/Stunde, max. 500 gesamt).
 
-Zugangsdaten werden in der Tabelle `teams` gepflegt (siehe `supabase/rpc-auth.sql`)
-und auf Papier verteilt. Determinierte Schüler:innen müssten für ein fremdes
-Ticket dessen Papier-Passwort kennen – ohne echte per-Nutzer-Accounts.
+**Bekannte Grenze (bewusst akzeptiert):** die SELECT-Policy auf `tickets`
+bleibt offen, damit Board + Realtime ohne echte Auth funktionieren. Wer den
+(öffentlichen) anon-Key aus dem Bundle extrahiert, kann per REST alle Tickets
+aller Klassen lesen – inklusive Musterlösungen vor der Freigabe. Für den
+Unterrichtseinsatz ist das in Ordnung; echte Abschottung bräuchte
+Supabase-Auth mit per-Klasse-Claims.
 
 ---
 
@@ -98,7 +128,14 @@ SPA-Fallback robust. Bei abweichendem Repo-Namen `base` in `vite.config.ts`
 
 ## Bedienung
 
-- **Login** → **Ticket-Übersicht** (Board) mit Status-Chips
+- **Klassen-Set erstellen** (Lehrkraft, `#/register` – nur per geteiltem
+  Einladungslink erreichbar, in der App nicht verlinkt): erzeugt Klassen-Code +
+  8 Konten + 7 Tickets und zeigt das druckbare Zugangsdaten-Blatt (QR-Code,
+  Login-Link mit vorausgefülltem Code, Zettel zum Ausschneiden). Später
+  erneut abrufbar über Board → **„Zugangsdaten & QR-Code"**.
+- **Login** (Klassen-Code + Benutzername + Passwort; der Code ist über den
+  QR-/Link-Parameter `?class=…` vorausgefüllt) → **Ticket-Übersicht** (Board)
+  mit Status-Chips
   (`Offen` / `In Bearbeitung` / `Erledigt`); das eigene Ticket ist markiert.
   Die Spalte **Bearbeitungszeit** zeigt die Zeit vom ersten Öffnen des Tickets
   durch das Team bis zum letzten Speichern (läuft live mit, solange noch nie
@@ -124,6 +161,15 @@ SPA-Fallback robust. Bei abweichendem Repo-Namen `base` in `vite.config.ts`
 
 ## Datenmodell
 
-Eine Tabelle `tickets`, eine vorab eingefügte Zeile je Ticket mit fester
-Definition **und** aktueller Einreichung. Reset leert nur die Einreichungs-
-spalten. Details siehe `supabase/schema.sql`.
+- `ticket_templates` – die 7 Aufgaben-Vorlagen (global, per `seed.sql`).
+- `classes` – ein Klassen-Set je Lehrkraft (Code, optionales Label,
+  `last_activity` für den Aufräumjob).
+- `teams` – 8 Konten je Klasse (user1 … user7 + teacher), Passwörter generiert.
+- `tickets` – 7 Zeilen je Klasse: Kopie der Vorlage **und** aktuelle
+  Einreichung; Primärschlüssel `(class_id, id)`. Reset leert nur die
+  Einreichungsspalten der eigenen Klasse.
+
+Vorlagen-Änderungen wirken nur auf **neu** erstellte Klassen-Sets. Ein
+nächtlicher pg_cron-Job löscht Klassen ohne Aktivität seit 60 Tagen (Kaskade
+entfernt Konten + Tickets inkl. Screenshots). Details siehe
+`supabase/schema.sql` und `supabase/rpc-auth.sql`.

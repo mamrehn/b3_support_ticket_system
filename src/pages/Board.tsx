@@ -60,6 +60,13 @@ export function Board() {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
+              onClick={() => navigate('/credentials')}
+              className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              Zugangsdaten &amp; QR-Code
+            </button>
+            <button
+              type="button"
               onClick={() => navigate('/print')}
               className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
             >

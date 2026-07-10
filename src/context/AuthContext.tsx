@@ -17,7 +17,11 @@ import {
 interface AuthContextValue {
   session: Session | null;
   /** 'ok' bei Erfolg, sonst der Fehlergrund (siehe LoginResult in lib/auth). */
-  login: (username: string, password: string) => Promise<'ok' | 'invalid' | 'unavailable'>;
+  login: (
+    classCode: string,
+    username: string,
+    password: string,
+  ) => Promise<'ok' | 'invalid' | 'unavailable'>;
   logout: () => void;
 }
 
@@ -27,8 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(() => loadSession());
 
   const login = useCallback(
-    async (username: string, password: string): Promise<'ok' | 'invalid' | 'unavailable'> => {
-      const result = await authenticate(username, password);
+    async (
+      classCode: string,
+      username: string,
+      password: string,
+    ): Promise<'ok' | 'invalid' | 'unavailable'> => {
+      const result = await authenticate(classCode, username, password);
       if (!result.ok) return result.reason;
       saveSession(result.session);
       setSession(result.session);

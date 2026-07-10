@@ -1,8 +1,9 @@
 -- =====================================================================
--- DataSol IT-Support – Seed der Ticket-Vorlagen
+-- DataSol IT-Support – Seed der Ticket-VORLAGEN (ticket_templates)
 -- =====================================================================
--- Nach schema.sql ausführen. Re-runnable: aktualisiert NUR die Vorlagen-
--- Spalten, die Schülereingaben (submitted_*, revealed) bleiben unangetastet.
+-- Nach schema.sql ausführen. Re-runnable: aktualisiert nur die Vorlagen.
+-- create_class() kopiert die Vorlagen in die Tickets einer neuen Klasse –
+-- Änderungen hier wirken also nur auf danach erstellte Klassen-Sets.
 --
 -- Die Texte für Ticket 1 und 4 stammen aus der Aufgabenstellung. Tickets
 -- 2, 3, 5, 6, 7 sind analog aus dem Ticket-Paket abgeleitet – bei Bedarf hier
@@ -14,7 +15,7 @@
 -- sonst bemängelt das Feedback Werkzeuge, die gar nicht anklickbar waren.
 -- ---------------------------------------------------------------------
 
-insert into tickets (id, title, reporter_text, concept_hint, filius_deeplink, correct_layer, correct_tools, model_problem, model_solution) values
+insert into ticket_templates (id, title, reporter_text, concept_hint, filius_deeplink, correct_layer, correct_tools, model_problem, model_solution) values
 (1, 'Ticket #1 – Keine Netzwerkverbindung',
  'Mein Rechner hat überhaupt keine Netzwerkverbindung mehr – kein Intranet, gar nichts. Gestern lief noch alles. Bitte reparieren. Danke!',
  null,
