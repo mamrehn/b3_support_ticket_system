@@ -228,20 +228,20 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
                 <div>
                   {/* Quer durchs Klassenzimmer erkennbar: 7 cm Schriftgrad,
                       als Inline-Stil in cm – wirkt identisch am Bildschirm
-                      (≈ 264 px) und auf Papier, ohne Umweg über Utility-Klassen. */}
+                      (≈ 264 px) und auf Papier. Die Ziffer IST die Team-
+                      Kennung – keine redundanten "Team 7"-/"Ticket #7"-Zeilen. */}
                   <span
                     className={`block font-black leading-none ${color}`}
+                    aria-label={isTeacher ? 'Lehrkraft' : `Team ${c.ticketId}`}
                     style={{ fontSize: '7cm' }}
-                    aria-hidden
                   >
                     {isTeacher ? 'L' : c.ticketId}
                   </span>
-                  <span className="mt-2 block text-base font-bold text-gray-900">
-                    {isTeacher ? 'Lehrkraft' : `Team ${c.ticketId}`}
-                  </span>
-                  <span className="block text-xs text-gray-500">
-                    {isTeacher ? 'DataSol IT-Support' : `DataSol IT-Support · Ticket #${c.ticketId}`}
-                  </span>
+                  {isTeacher && (
+                    <span className="mt-2 block text-base font-bold text-gray-900">
+                      Lehrkraft
+                    </span>
+                  )}
                 </div>
                 {qr && !noLinks && (
                   <img
@@ -276,17 +276,18 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
                 </dl>
               </div>
 
-              {/* Sicherheitsnetz bzw. (ohne Link) Hinweis auf den Klassen-Code. */}
+              {/* Branding + Sicherheitsnetz bzw. (ohne Link) Klassen-Code-Hinweis. */}
               <p className="mt-auto pt-3 text-[10px] text-gray-400">
                 {noLinks ? (
                   <>
-                    Klassen-Code:{' '}
+                    DataSol IT-Support · Klassen-Code:{' '}
                     <span className="font-mono font-semibold">{classSet.classCode}</span> – die
                     Adresse gibt die Lehrkraft bekannt.
                   </>
                 ) : (
                   <>
-                    Falls der Link nicht klappt: Seite öffnen und Klassen-Code{' '}
+                    DataSol IT-Support · Falls der Link nicht klappt: Seite öffnen und
+                    Klassen-Code{' '}
                     <span className="font-mono font-semibold">{classSet.classCode}</span>{' '}
                     eingeben.
                   </>
