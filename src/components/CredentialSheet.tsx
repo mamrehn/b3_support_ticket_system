@@ -196,10 +196,11 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
                 Version ohne Link &amp; QR-Code (Spickschutz)
               </span>
               <span className="block text-xs leading-relaxed text-gray-500">
-                Zettel enthalten nur Teamnummer, Benutzername, Passwort und Klassen-Code –
-                so lassen sich Einteilung und Passwörter schon vorab austeilen, ohne die
-                Adresse zu verraten. Den Link zeigen Sie später (Tafel/Beamer) oder drucken
-                die Voll-Version.
+                Team-Zettel enthalten nur Teamnummer, Benutzername, Passwort und
+                Klassen-Code – so lassen sich Einteilung und Passwörter schon vorab
+                austeilen, ohne die Adresse zu verraten. Den Link zeigen Sie später
+                (Tafel/Beamer) oder drucken die Voll-Version. Der Lehrkraft-Zettel behält
+                Link &amp; QR-Code immer.
               </span>
             </span>
           </label>
@@ -219,6 +220,9 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
             ? 'text-gray-800'
             : (TEAM_COLORS[c.ticketId ?? 0] ?? 'text-gray-800');
           const cutLines = `${i % 2 === 0 ? 'print:border-r ' : ''}${i % 4 < 2 ? 'print:border-b' : ''}`;
+          // Spickschutz betrifft nur die Team-Zettel – die Lehrkraft kennt
+          // die Adresse ohnehin und behält Link + QR-Code immer.
+          const hideLinks = noLinks && !isTeacher;
           return (
             <li
               key={c.username}
@@ -243,7 +247,7 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
                     </span>
                   )}
                 </div>
-                {qr && !noLinks && (
+                {qr && !hideLinks && (
                   <img
                     src={qr}
                     alt=""
@@ -255,7 +259,7 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
 
               <div className="mt-4 space-y-1.5 text-sm print:mt-6 print:text-base">
                 {/* Link in voller Kartenbreite – so passt der Kurzlink in eine Zeile */}
-                {!noLinks && (
+                {!hideLinks && (
                   <p className="break-all">
                     <span className="text-gray-500">Link: </span>
                     <span className="font-mono font-semibold text-gray-900">{slipLink}</span>
@@ -278,7 +282,7 @@ export function CredentialSheet({ classSet }: { classSet: ClassSet }) {
 
               {/* Branding + Sicherheitsnetz bzw. (ohne Link) Klassen-Code-Hinweis. */}
               <p className="mt-auto pt-3 text-[10px] text-gray-400">
-                {noLinks ? (
+                {hideLinks ? (
                   <>
                     DataSol IT-Support · Klassen-Code:{' '}
                     <span className="font-mono font-semibold">{classSet.classCode}</span> – die
