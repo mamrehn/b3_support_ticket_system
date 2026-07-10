@@ -10,6 +10,7 @@ import { openTicket, saveSubmission } from '../lib/api';
 import { collectTools, parseFlow } from '../lib/flowchart';
 import { formatDateTime } from '../lib/format';
 import { isSubmissionComplete, type Ticket } from '../lib/types';
+import { confirmDiscardUnsaved, setUnsavedChanges } from '../lib/unsavedGuard';
 import { reporterFor } from '../lib/personas';
 import { Avatar } from '../components/Avatar';
 import { ColleagueFeedback } from '../components/ColleagueFeedback';
@@ -88,6 +89,25 @@ function TicketDetailView({
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const loadedId = useRef(ticket.id);
+  // Zählt jede Eingabe mit – so verwirft ein während des Speicherns weiter
+  // getipptes Formular seine Änderungen nicht (siehe persist()).
+  const editVersion = useRef(0);
+
+  // Ungespeicherte Änderungen: Navigation fragt nach (lib/unsavedGuard),
+  // Tab schließen / Neuladen zeigt den Browser-Dialog.
+  useEffect(() => {
+    setUnsavedChanges(dirty);
+    return () => setUnsavedChanges(false);
+  }, [dirty]);
+  useEffect(() => {
+    if (!dirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [dirty]);
 
   // Formular mit dem Server-Stand synchronisieren – aber lokale, noch nicht
   // gespeicherte Eingaben nicht überschreiben (z. B. bei Realtime-Updates).
@@ -118,12 +138,14 @@ function TicketDetailView({
   });
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+    editVersion.current += 1;
     setForm((prev) => ({ ...prev, [key]: value }));
     setDirty(true);
     setSavedAt(null);
   };
 
   const persist = async (reveal: boolean) => {
+    const versionAtSave = editVersion.current;
     setSaving(true);
     setError(null);
     try {
@@ -143,8 +165,12 @@ function TicketDetailView({
         reveal,
       );
       await refetch();
-      setDirty(false);
-      setSavedAt(Date.now());
+      // Während des Speicherns weiter getippt? Dann bleibt das Formular
+      // "ungespeichert" und wird nicht vom Server-Stand überschrieben.
+      if (editVersion.current === versionAtSave) {
+        setDirty(false);
+        setSavedAt(Date.now());
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Speichern fehlgeschlagen.');
     } finally {
@@ -158,7 +184,13 @@ function TicketDetailView({
   return (
     <Layout>
       <div className="mx-auto max-w-3xl">
-      <Link to="/" className="text-sm font-medium text-accent-700 hover:underline">
+      <Link
+        to="/"
+        onClick={(e) => {
+          if (!confirmDiscardUnsaved()) e.preventDefault();
+        }}
+        className="text-sm font-medium text-accent-700 hover:underline"
+      >
         ← Zurück zur Übersicht
       </Link>
 

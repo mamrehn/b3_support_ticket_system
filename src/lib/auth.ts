@@ -26,13 +26,20 @@ interface LoginRow {
 
 const STORAGE_KEY = 'datasol-session';
 
-// Serverseitige Prüfung der Anmeldedaten. Gibt die Session zurück oder null.
+// Ergebnis der Anmeldung: 'invalid' = Zugangsdaten falsch, 'unavailable' =
+// Server/Netz nicht erreichbar (oder RPC fehlt) – wird getrennt angezeigt,
+// damit ein WLAN-Aussetzer nicht wie ein Tippfehler aussieht.
+export type LoginResult =
+  | { ok: true; session: Session }
+  | { ok: false; reason: 'invalid' | 'unavailable' };
+
+// Serverseitige Prüfung der Anmeldedaten.
 export async function authenticate(
   username: string,
   password: string,
-): Promise<Session | null> {
+): Promise<LoginResult> {
   const u = username.trim();
-  if (!u || !password) return null;
+  if (!u || !password) return { ok: false, reason: 'invalid' };
 
   const { data, error } = await supabase.rpc('app_login', {
     p_username: u,
@@ -40,19 +47,21 @@ export async function authenticate(
   });
 
   if (error) {
-    // Echte Fehler (Netz/RPC fehlt) protokollieren; nach außen "ungültig".
     console.error('app_login fehlgeschlagen:', error.message);
-    return null;
+    return { ok: false, reason: 'unavailable' };
   }
 
   const row = (Array.isArray(data) ? data[0] : null) as LoginRow | null;
-  if (!row) return null;
+  if (!row) return { ok: false, reason: 'invalid' };
 
   return {
-    username: row.username ?? u,
-    role: row.role ?? 'team',
-    ticketId: row.ticket_id ?? undefined,
-    password,
+    ok: true,
+    session: {
+      username: row.username ?? u,
+      role: row.role ?? 'team',
+      ticketId: row.ticket_id ?? undefined,
+      password,
+    },
   };
 }
 

@@ -60,21 +60,17 @@ export function TicketsProvider({ children }: { children: ReactNode }) {
     if (!isSupabaseConfigured) return;
 
     // Realtime: das Board läuft live mit, wenn ein Team speichert (README §1, §4.4).
+    // Das Event dient nur als Auslöser – die Zeilen werden per refetch() frisch
+    // geladen. Grund: payload.new ist bei großen Zeilen unvollständig (TOAST-
+    // Spalten wie der Screenshot in trace_note fehlen bei UPDATEs, Payload-
+    // Limit ~1 MiB). Den unvollständigen Datensatz zu übernehmen würde den
+    // Trace clientseitig "löschen" – und beim nächsten Speichern auch in der DB.
     const channel = supabase
       .channel('tickets-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'tickets' },
-        (payload) => {
-          const row = payload.new as Ticket;
-          if (!row || typeof row.id !== 'number') return;
-          setTickets((prev) => {
-            const next = prev.some((t) => t.id === row.id)
-              ? prev.map((t) => (t.id === row.id ? row : t))
-              : [...prev, row];
-            return next.sort((a, b) => a.id - b.id);
-          });
-        },
+        () => void refetch(),
       )
       .subscribe((status) => {
         if (mounted.current) setLive(status === 'SUBSCRIBED');

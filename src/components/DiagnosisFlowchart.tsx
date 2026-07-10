@@ -87,6 +87,47 @@ export function DiagnosisFlowchart({
         Frage beantworten. Jede Antwort wird als euer Diagnose-Protokoll dokumentiert.
       </p>
 
+      {/* Fortschritts-Spur: bewusst nur der bereits gegangene Weg + aktuelle
+          Schicht – kommende Schichten werden nicht vorweggenommen. */}
+      {(flow.answers.length > 0 || flow.current) && (
+        <ol aria-label="Bisheriger Diagnoseweg" className="mt-3 flex flex-wrap items-center gap-1">
+          {flow.answers.map((a, i) => (
+            <li key={a.step.layer} className="flex items-center gap-1">
+              {i > 0 && (
+                <span className="text-xs text-gray-300" aria-hidden>
+                  →
+                </span>
+              )}
+              <span
+                title={`Schicht ${a.step.layer}: ${a.result === 'ok' ? 'OK' : 'Fehler gefunden'}`}
+                className={`grid h-6 w-6 place-items-center rounded-full text-xs font-semibold ring-1 ring-inset ${
+                  a.result === 'ok'
+                    ? 'bg-green-100 text-green-700 ring-green-300'
+                    : 'bg-red-100 text-red-800 ring-red-300'
+                }`}
+              >
+                {a.step.layer}
+              </span>
+            </li>
+          ))}
+          {flow.current && (
+            <li className="flex items-center gap-1">
+              {flow.answers.length > 0 && (
+                <span className="text-xs text-gray-300" aria-hidden>
+                  →
+                </span>
+              )}
+              <span
+                title={`Schicht ${flow.current.layer}: in Prüfung`}
+                className="grid h-6 w-6 place-items-center rounded-full bg-amber-100 text-xs font-semibold text-amber-800 ring-1 ring-inset ring-amber-300"
+              >
+                {flow.current.layer}
+              </span>
+            </li>
+          )}
+        </ol>
+      )}
+
       {/* Protokoll: bereits geprüfte Schichten */}
       {okAnswers.length > 0 && (
         <ol className="mt-3 space-y-2">

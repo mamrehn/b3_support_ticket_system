@@ -33,6 +33,19 @@ export function formatDuration(ms: number): string {
   return h > 0 ? `${h} h ${String(m).padStart(2, '0')} min` : `${m} min`;
 }
 
+// Relative Zeitangabe für den Kollegin-Kommentar: "gerade eben" / "vor 12 min".
+export function formatRelativeTime(
+  value: string | null | undefined,
+  now: number = Date.now(),
+): string {
+  if (!value) return 'gerade eben';
+  const t = new Date(value).getTime();
+  if (Number.isNaN(t)) return 'gerade eben';
+  const diff = now - t;
+  if (diff < 60_000) return 'gerade eben';
+  return `vor ${formatDuration(diff)}`;
+}
+
 // Bearbeitungszeit eines Tickets: vom ersten Öffnen (opened_at) bis zum letzten
 // Speichern (submitted_at) – oder bis jetzt, solange noch nie gespeichert wurde.
 export function ticketElapsed(

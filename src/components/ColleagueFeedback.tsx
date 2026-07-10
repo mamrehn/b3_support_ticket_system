@@ -1,5 +1,6 @@
 import { Avatar } from './Avatar';
 import { buildFeedback, joinDe } from '../lib/feedback';
+import { formatRelativeTime } from '../lib/format';
 import { MENTOR } from '../lib/personas';
 import { solutionTraceFor } from '../lib/solutionTraces';
 import type { Ticket } from '../lib/types';
@@ -20,7 +21,7 @@ export function ColleagueFeedback({ ticket }: { ticket: Ticket }) {
             <span className="text-xs text-gray-500">{MENTOR.role}</span>
           </div>
           <p className="text-xs text-gray-400">
-            hat auf eure Diagnose geantwortet · gerade eben
+            hat auf eure Diagnose geantwortet · {formatRelativeTime(ticket.submitted_at)}
           </p>
 
           <div className="mt-3 space-y-3 text-sm leading-relaxed text-gray-800">

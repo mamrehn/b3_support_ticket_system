@@ -94,14 +94,13 @@ export function Board() {
           Keine Tickets vorhanden. Wurde die Datenbank initialisiert (schema.sql + seed.sql)?
         </p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
               <tr>
                 <th className="px-4 py-3 w-12">#</th>
                 <th className="px-4 py-3">Titel</th>
                 <th className="px-4 py-3 w-36">Status</th>
-                <th className="px-4 py-3 w-28">Team</th>
                 <th className="px-4 py-3 w-40">Bearbeitungszeit</th>
                 <th className="px-4 py-3 w-52">Zuletzt geändert</th>
               </tr>

@@ -1,12 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { displayName } from '../lib/auth';
+import { confirmDiscardUnsaved } from '../lib/unsavedGuard';
 
 export function TopBar() {
   const { session, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    if (!confirmDiscardUnsaved()) return;
     logout();
     navigate('/login');
   };
@@ -14,7 +16,13 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur print:hidden">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+        <Link
+          to="/"
+          onClick={(e) => {
+            if (!confirmDiscardUnsaved()) e.preventDefault();
+          }}
+          className="flex items-center gap-2 text-sm font-semibold text-gray-900"
+        >
           <span className="grid h-7 w-7 place-items-center rounded-md bg-accent-600 text-xs font-bold text-white">
             DS
           </span>
