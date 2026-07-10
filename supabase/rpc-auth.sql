@@ -312,10 +312,16 @@ begin
     return;
   end;
 
-  delete from cron.job where jobname = 'datasol-cleanup-classes';
-  perform cron.schedule(
-    'datasol-cleanup-classes',
-    '15 3 * * *',
-    $job$ delete from public.classes where last_activity < now() - interval '60 days' $job$
-  );
+  -- cron.schedule mit Job-Namen ist ein Upsert (ersetzt einen bestehenden Job
+  -- gleichen Namens). Direktes DML auf cron.job scheitert auf Supabase an
+  -- fehlenden Rechten der postgres-Rolle – daher nur über die Funktion.
+  begin
+    perform cron.schedule(
+      'datasol-cleanup-classes',
+      '15 3 * * *',
+      $job$ delete from public.classes where last_activity < now() - interval '60 days' $job$
+    );
+  exception when others then
+    raise notice 'Aufräumjob konnte nicht eingerichtet werden (%) – bei Bedarf von Hand löschen.', sqlerrm;
+  end;
 end $$;
