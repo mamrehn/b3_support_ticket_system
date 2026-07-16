@@ -43,14 +43,14 @@ export const LAYER_STEPS: LayerStep[] = [
   {
     layer: 4,
     layerValue: LAYERS[3],
-    question: 'Dienst-Port am Server erreichbar, nicht blockiert?',
+    question: 'Firewall am Router inaktiv oder Dienst-Port freigegeben?',
     tools: ['firewall'],
-    faultAction: 'Firewall-Port für den Dienst freigeben',
+    faultAction: 'Firewall-Regel am Router anpassen: Dienst-Port freigeben',
   },
   {
     layer: 7,
     layerValue: LAYERS[6],
-    question: 'Name löst auf und Dienst antwortet?',
+    question: 'Name löst auf und Intranet-Seite antwortet?',
     tools: ['nslookup', 'browser'],
     faultAction: 'DNS-Eintrag korrigieren / Dienst starten',
   },

@@ -169,7 +169,7 @@ export function Board() {
       <ConfirmModal
         open={resetOpen}
         title="Ticketsystem zurücksetzen"
-        message="Wirklich alle Schülereingaben löschen? Die Ticket-Vorlagen bleiben erhalten."
+        message="Wirklich alle Schülereingaben löschen? Die Tickets werden dabei auf die aktuelle Fassung der Vorlagen gebracht."
         confirmLabel="Zurücksetzen"
         danger
         busy={resetting}

@@ -230,6 +230,11 @@ begin
 end $$;
 
 -- 5) Zurücksetzen (nur Lehrkraft, nur die eigene Klasse) -------------------
+-- Leert die Schülereingaben UND bringt die Ticket-Inhalte auf den aktuellen
+-- Stand der Vorlagen: Änderungen an ticket_templates (seed.sql erneut
+-- ausgeführt) erreichen bestehende Klassen so mit dem nächsten Reset. Bis
+-- dahin behält die Klasse bewusst ihren alten Stand, damit sich Texte nicht
+-- mitten in einer laufenden Runde ändern.
 create or replace function reset_tickets(p_class_id uuid, p_username text, p_password text)
 returns void
 language plpgsql
@@ -245,6 +250,18 @@ begin
   if v_role is distinct from 'teacher' then
     raise exception 'Nur die Lehrkraft darf zurücksetzen';
   end if;
+
+  update tickets t set
+    title           = tt.title,
+    reporter_text   = tt.reporter_text,
+    concept_hint    = tt.concept_hint,
+    filius_deeplink = tt.filius_deeplink,
+    correct_layer   = tt.correct_layer,
+    correct_tools   = tt.correct_tools,
+    model_problem   = tt.model_problem,
+    model_solution  = tt.model_solution
+  from ticket_templates tt
+  where t.class_id = p_class_id and tt.id = t.id;
 
   update tickets set
     submitted_layer    = null,

@@ -12,16 +12,20 @@ Für die **Fehlersuche** ist das Gold wert: Ein Fehler steckt fast immer in **ei
 | **7 Anwendung** | Anwendung | Dienste/Programme bereitstellen (Web, DNS) | Name geht nicht / Seite lädt nicht – obwohl Ping klappt | Browser, `nslookup`, Dienststatus |
 | **6 Darstellung** | Anwendung | Datenformat, Verschlüsselung | Daten unleserlich / Zertifikatfehler | (Browser-Meldung) |
 | **5 Sitzung** | Anwendung | Verbindung auf-/abbauen | Verbindung bricht ab | (Protokolle/Logs) |
-| **4 Transport** | Transport | Datenstrom, **Ports** (TCP/UDP) | Ping klappt, aber Dienst verweigert/blockiert | Firewall, „Port offen?" |
+| **4 Transport** | Transport | Datenstrom, **Ports** (TCP/UDP) | Ping klappt, aber Dienst verweigert/blockiert | Firewall-Regeln (am Router), „Port offen?" |
 | **3 Vermittlung** | Internet | Adressierung & Wegwahl (IP, ICMP, **ARP**) | keine/falsche IP; remote nicht erreichbar | `ping`, `ipconfig`, `arp -a`, Wireshark |
 | **2 Sicherung** | Netzzugang | Frames, MAC, Fehlererkennung (**FCS**) | Link da, aber Frames beschädigt/verworfen | Wireshark (FCS), SAT des Switch |
 | **1 Bitübertragung** | Netzzugang | Bits über Kabel/Funk | kein Link; „Kabel nicht verbunden" | LED, Verbindungsansicht, `ipconfig` |
 
 > Die Schichten **5 und 6** fasst man in der Praxis meist mit Schicht 7 zur „Anwendung" zusammen.
 
+> **Hinweis:** „Internet" in der Spalte *DoD-Gruppe* ist nur der Name der Schichtgruppe rund um IP (Schicht 3) – er bedeutet nicht, dass ein Internetzugang vorhanden ist. Unser Übungsnetz ist ein reines Firmennetz **ohne** Internetanschluss; „Anwendung" meint hier die interne Intranet-Seite und den DNS-Dienst.
+
 ## So suchst du systematisch
 **Grundregel:** Gehe die Schichten **von unten (1) nach oben (7)** durch. Prüfe eine Schicht – ist sie in Ordnung, steige eine höher; ist sie es nicht, hast du den Fehler gefunden. Da jede Schicht auf der darunter aufbaut, gilt: Funktioniert Schicht N, sind die Schichten 1 bis N in Ordnung.
 *Nach jeder Behebung von der betroffenen Schicht aus erneut prüfen.*
+
+Gibt es auf einer Schicht **nichts zu prüfen**, gilt sie als OK – einfach eine Schicht höher weitermachen. Beispiel Schicht 4: Die Firewall sitzt im Übungsnetz auf dem **Router**; ist dort keine Firewall aktiv (oder keine Regel eingetragen), ist Schicht 4 in Ordnung.
 
 ### ① Standard-Weg – Schicht für Schicht (1 → 7)
 
@@ -34,9 +38,9 @@ flowchart TD
   S2 -- "Nein" --> F2["Schicht 2 – Sicherung<br/>defektes Kabel tauschen (FCS-Fehler)"]
   S2 -- "Ja" --> S3{"Schicht 3 OK?<br/>Andere Geräte per IP erreichbar? (ipconfig, ping)"}
   S3 -- "Nein" --> F3["Schicht 3 – Vermittlung<br/>Eigene IP/Maske korrekt? Standardgateway gesetzt?"]
-  S3 -- "Ja" --> S4{"Schicht 4 OK?<br/>Dienst-Port am Server erreichbar, nicht blockiert? (Firewall)"}
-  S4 -- "Nein" --> F4["Schicht 4 – Transport<br/>Firewall-Port für den Dienst freigeben"]
-  S4 -- "Ja" --> S7{"Schicht 7 OK?<br/>Name löst auf und Dienst antwortet? (nslookup, Browser)"}
+  S3 -- "Ja" --> S4{"Schicht 4 OK?<br/>Firewall am Router inaktiv oder Dienst-Port freigegeben? (Firewall-Konfiguration)"}
+  S4 -- "Nein" --> F4["Schicht 4 – Transport<br/>Firewall-Regel am Router anpassen: Dienst-Port freigeben"]
+  S4 -- "Ja" --> S7{"Schicht 7 OK?<br/>Name löst auf und Intranet-Seite antwortet? (nslookup, Browser)"}
   S7 -- "Nein" --> F7["Schicht 7 – Anwendung<br/>DNS-Eintrag korrigieren / Dienst starten"]
   S7 -- "Ja" --> OK(["Alles OK – Fehler woanders suchen"])
 
@@ -50,7 +54,7 @@ flowchart TD
   class A,OK neu
 ```
 
-*Farben: blau = Netzzugang (Schicht 1/2), violett = Internet (3), orange = Transport/Anwendung (4/7).*
+*Farben: blau = Netzzugang (Schicht 1/2), violett = Internetschicht (3), orange = Transport/Anwendung (4/7).*
 
 ### ② Bonus für Schnelle – der „Ping-Sprung"
 Profis sparen Schritte. Der **Ping** testet die Schichten **1–3 mit einem einzigen Befehl**: Klappt er, kann man die unteren drei Schichten überspringen und sofort weiter oben suchen; klappt er nicht, grenzt man von dort nach unten ein.
@@ -64,7 +68,7 @@ Schneller, aber schwerer zu lesen:
 flowchart TD
   A(["Fehler gemeldet"]) --> B{"Ping zur Ziel-IP erfolgreich?<br/>(prüft Schicht 1–3 auf einmal)"}
 
-  B -- "Ja, 1–3 OK" --> D{"Aufruf per Name möglich?<br/>(Browser / nslookup – Schicht 7)"}
+  B -- "Ja, 1–3 OK" --> D{"Intranet-Seite per Name erreichbar?<br/>(Browser / nslookup – Schicht 7)"}
   B -- "Nein" --> F{"Ping ins lokale Netz erfolgreich?<br/>(Gateway / Nachbar-PC)"}
 
   D -- "Nein" --> L7a["Schicht 7 – DNS<br/>DNS-Server-Eintrag am PC korrigieren"]

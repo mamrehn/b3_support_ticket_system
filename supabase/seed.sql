@@ -2,12 +2,22 @@
 -- DataSol IT-Support – Seed der Ticket-VORLAGEN (ticket_templates)
 -- =====================================================================
 -- Nach schema.sql ausführen. Re-runnable: aktualisiert nur die Vorlagen.
--- create_class() kopiert die Vorlagen in die Tickets einer neuen Klasse –
--- Änderungen hier wirken also nur auf danach erstellte Klassen-Sets.
+-- create_class() kopiert die Vorlagen in die Tickets einer neuen Klasse.
+-- Bestehende Klassen behalten zunächst ihren alten Stand; sie übernehmen
+-- Änderungen von hier erst, wenn die Lehrkraft das Ticketsystem zurücksetzt
+-- (reset_tickets kopiert die Vorlagen-Inhalte dann erneut in die Klasse).
 --
--- Die Texte für Ticket 1 und 4 stammen aus der Aufgabenstellung. Tickets
--- 2, 3, 5, 6, 7 sind analog aus dem Ticket-Paket abgeleitet – bei Bedarf hier
--- durch die echten Paket-Texte ersetzen. Filius-Deeplink-Schema:
+-- Alle Filius-Szenarien zeigen dasselbe Netz: ein Router verbindet zwei
+-- Subnetze. Switch1 (192.168.0.0/24): Laptop des Melders (.10) + Laptop eines
+-- Kollegen (.11). Switch2 (10.0.0.0/24): Laptop (.12) + Server (.10; DNS-/
+-- Webserver nur, wenn das Ticket sie braucht). Es gibt KEINEN Internetzugang –
+-- die Texte dürfen daher weder das Internet noch Dienste erwähnen, die im
+-- jeweiligen Szenario fehlen.
+--
+-- Die Texte für Ticket 1 und 4 stammen aus der Aufgabenstellung (Ticket 4
+-- leicht an das Simulationsnetz angepasst: dort gibt es keine Webseiten zum
+-- Laden). Tickets 2, 3, 5, 6, 7 sind analog aus dem Ticket-Paket abgeleitet.
+-- Filius-Deeplink-Schema:
 -- https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_<ticket-id>.
 --
 -- correct_tools: nur Werkzeuge verwenden, die der geführte Diagnoseweg bis zur
@@ -26,7 +36,7 @@ insert into ticket_templates (id, title, reporter_text, concept_hint, filius_dee
  'Kabel wieder angeschlossen / an korrekten Switch-Port gesteckt.'),
 
 (2, 'Ticket #2 – Anderes Netz nicht erreichbar',
- 'Die Kollegen direkt neben mir kann ich anpingen, aber an die Server in der anderen Abteilung komme ich nicht heran. Das Internet geht auch nicht.',
+ 'Den Kollegen direkt neben mir kann ich anpingen, aber in die andere Abteilung komme ich gar nicht durch – weder zum Server noch zum Rechner des Kollegen dort. Bitte reparieren. Danke!',
  null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_2',
  'Schicht 3 – Vermittlung',
@@ -34,17 +44,17 @@ insert into ticket_templates (id, title, reporter_text, concept_hint, filius_dee
  'Lokales Netz erreichbar, andere Netze nicht → das Standardgateway war nicht/falsch eingetragen.',
  'Korrektes Standardgateway (Router-IP) laut Netzplan im Client eingetragen.'),
 
-(3, 'Ticket #3 – Manche Rechner erreichbar, andere nicht',
- 'Ein paar Rechner im Haus erreiche ich problemlos, andere im gleichen Büro überhaupt nicht. Das ergibt für mich keinen Sinn. Bitte reparieren. Danke!',
+(3, 'Ticket #3 – Nicht alle Rechner erreichbar',
+ 'Den Server und den Rechner in der anderen Abteilung erreiche ich problemlos, aber den Laptop vom Kollegen direkt neben mir überhaupt nicht. Das ergibt für mich keinen Sinn. Bitte reparieren. Danke!',
  null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_3',
  'Schicht 3 – Vermittlung',
  array['ipconfig','ping'],
- 'Falsche Subnetzmaske → ein Teil der Adressen wurde fälschlich als „fremdes Netz" behandelt und nicht erreicht.',
- 'Korrekte Subnetzmaske laut Netzplan gesetzt, danach sind alle Rechner im Subnetz erreichbar.'),
+ 'Der Nachbar-Laptop hatte eine falsche IP-Adresse und Subnetzmaske (192.168.1.11 / 255.255.0.0 statt 192.168.0.11 / 255.255.255.0) → die übrigen Rechner behandelten ihn dadurch als „fremdes Netz" und erreichten ihn nicht.',
+ 'IP-Adresse und Subnetzmaske des Nachbar-Laptops laut Netzplan korrigiert, danach sind alle Rechner im Subnetz erreichbar.'),
 
 (4, 'Ticket #4 – Ständige Aussetzer trotz blinkender Netzwerk-LED',
- 'Bei mir ist der Wurm drin: Mal lädt eine Seite, dann wieder nicht, Downloads brechen ständig mittendrin ab. Dabei blinkt die Lampe an der Netzwerkbuchse munter vor sich hin – es müsste doch eigentlich alles in Ordnung sein? Seit Kurzem steht außerdem ein großes Gerät der Haustechnik direkt neben meinem PC. Kann das was mit dem Umbau zu tun haben? Bitte reparieren. Danke!',
+ 'Bei mir ist der Wurm drin: Mal erreiche ich die anderen Rechner, dann wieder nicht, und Übertragungen brechen ständig mittendrin ab. Dabei blinkt die Lampe an der Netzwerkbuchse munter vor sich hin – es müsste doch eigentlich alles in Ordnung sein? Seit Kurzem steht außerdem ein großes Gerät der Haustechnik direkt neben meinem Laptop. Kann das was mit dem Umbau zu tun haben? Bitte reparieren. Danke!',
  null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_4',
  'Schicht 2 – Sicherung',
@@ -58,26 +68,26 @@ insert into ticket_templates (id, title, reporter_text, concept_hint, filius_dee
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_5',
  'Schicht 7 – Anwendung',
  array['nslookup','browser'],
- 'Aufruf per IP klappt, per Name nicht → DNS-Eintrag fehlte.',
- 'Adresse des DNS-Servers im Client ergänzt (vom Nachbar-PC/Netzplan).'),
+ 'Aufruf per IP klappt, per Name nicht → in den Netzwerkeinstellungen des Rechners fehlte die Adresse des DNS-Servers.',
+ 'Adresse des DNS-Servers (laut Netzplan: Server 10.0.0.10) in den Netzwerkeinstellungen ergänzt.'),
 
 (6, 'Ticket #6 – Webseite lädt nicht, Server antwortet aber',
- 'Den Server kann ich anpingen, aber unsere interne Webseite lädt einfach nicht – im Browser kommt nur ein Fehler. Bitte reparieren. Danke!',
+ 'Den Server kann ich anpingen, aber unsere interne Webseite lädt einfach nicht – im Browser kommt nur ein Fehler, obwohl ich wie gewohnt die Zahlenadresse verwende. Bitte reparieren. Danke!',
  null,
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_6',
  'Schicht 7 – Anwendung',
- array['ping','nslookup','browser'],
- 'Ping erfolgreich (Netz in Ordnung), Webseite lädt nicht → der Webserver-Dienst war gestoppt.',
+ array['ping','browser'],
+ 'Ping erfolgreich (Netz in Ordnung), Webseite lädt auch per IP-Adresse nicht → der Webserver-Dienst war gestoppt.',
  'Webserver-Dienst am Server gestartet/aktiviert, Seite anschließend wieder erreichbar.'),
 
 (7, 'Ticket #7 – Verbindung zum Server seit gestern blockiert',
  'Seit der Umstellung gestern komme ich nicht mehr auf den Server. Pingen kann ich ihn, aber der Verbindungsaufbau zur Anwendung scheitert. Bitte reparieren. Danke!',
- 'Eine Firewall kann gezielt einzelne Ports (Transportschicht) sperren. Dann ist der Rechner zwar per Ping erreichbar, der Dienst aber nicht.',
+ 'Eine Firewall kann gezielt einzelne Ports (Transportschicht) sperren. Dann ist der Rechner zwar per Ping erreichbar, der Dienst aber nicht. Im Übungsnetz sitzt die Firewall auf dem Router.',
  'https://mamrehn.github.io/netlab3-web/?load_file=b3_support_ticket_7',
  'Schicht 4 – Transport',
  array['ping','firewall'],
  'Ping ok, aber Verbindungsaufbau scheitert → die Firewall sperrte den benötigten Port.',
- 'Firewall-Regel angepasst und den benötigten Port für den Dienst freigegeben.')
+ 'Firewall-Regel am Router angepasst und den benötigten Port (TCP 80) für den Dienst freigegeben.')
 
 on conflict (id) do update set
   title           = excluded.title,

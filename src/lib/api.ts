@@ -49,7 +49,8 @@ export async function openTicket(ticketId: number, session: Session): Promise<vo
 }
 
 // Lehrer-Reset über die RPC reset_tickets (serverseitig auf role='teacher'
-// geprüft). Leert NUR die Schülereingaben der EIGENEN Klasse.
+// geprüft). Leert die Schülereingaben der EIGENEN Klasse und bringt die
+// Ticket-Inhalte auf den aktuellen Stand der Vorlagen (ticket_templates).
 export async function resetAllSubmissions(session: Session): Promise<void> {
   const { error } = await supabase.rpc('reset_tickets', {
     p_class_id: session.classId,

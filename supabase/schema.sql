@@ -34,8 +34,10 @@ begin
 end $$;
 
 -- Vorlagen der 7 Übungs-Tickets (global; Inhalte siehe seed.sql).
--- create_class() kopiert sie in die Klassen-Tickets – Änderungen an den
--- Vorlagen wirken daher nur auf NEU erstellte Klassen.
+-- create_class() kopiert sie in die Klassen-Tickets. Änderungen an den
+-- Vorlagen wirken auf NEU erstellte Klassen sofort; bestehende Klassen
+-- übernehmen sie erst, wenn die Lehrkraft zurücksetzt (reset_tickets
+-- kopiert die Vorlagen-Inhalte erneut) – laufende Runden bleiben stabil.
 create table if not exists ticket_templates (
   id              int primary key,          -- 1..7
   title           text not null,

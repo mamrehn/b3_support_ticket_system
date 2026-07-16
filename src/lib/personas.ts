@@ -11,7 +11,7 @@ export interface Reporter {
 export const REPORTERS: Record<number, Reporter> = {
   1: { name: 'Markus Hoffmann', department: 'Buchhaltung' }, // #1 keine Verbindung (L1)
   2: { name: 'Petra Wagner', department: 'Vertrieb' }, // #2 anderes Netz (L3)
-  3: { name: 'Stefan Klein', department: 'Lager & Logistik' }, // #3 Subnetzmaske (L3)
+  3: { name: 'Stefan Klein', department: 'Lager & Logistik' }, // #3 IP/Subnetzmaske Nachbar-Laptop (L3)
   4: { name: 'Daniel Wolf', department: 'Haustechnik' }, // #4 FCS/Störung (L2)
   5: { name: 'Julia Becker', department: 'Marketing' }, // #5 DNS (L7)
   6: { name: 'Thomas Schäfer', department: 'Personalabteilung' }, // #6 Webdienst (L7)

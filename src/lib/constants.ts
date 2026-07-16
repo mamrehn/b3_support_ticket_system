@@ -25,7 +25,7 @@ export const TOOLS: { key: string; label: string }[] = [
   { key: 'connview', label: 'Verbindungs-LEDs / Kabel' },
   { key: 'browser', label: 'Browser-Aufruf' },
   { key: 'service', label: 'Dienststatus am Server' },
-  { key: 'firewall', label: 'Firewall-Konfiguration' },
+  { key: 'firewall', label: 'Firewall-Konfiguration (Router)' },
 ];
 
 const TOOL_LABELS: Record<string, string> = Object.fromEntries(
